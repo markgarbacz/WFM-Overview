@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourth iQ Manager App — Prototypes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #002747; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; }
+.back-link { position: fixed; top: 20px; left: 20px; color: #FFF; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; opacity: 0.8; transition: opacity 0.3s; z-index: 1000; }
+.back-link:hover { opacity: 1; }
+.container { max-width: 860px; padding: 24px 40px; text-align: center; }
+.logo-area { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; }
+.logo-area img { width: 36px; height: 36px; }
+.logo-area span { font-size: 22px; font-weight: 800; color: #fff; }
+h1 { font-size: 28px; font-weight: 800; color: #FFF; margin-bottom: 6px; }
+.sub { font-size: 14px; color: #7A8B9E; margin-bottom: 20px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+.card { background: #001D36; border: 1px solid #0C4A7D; border-radius: 16px; padding: 26px 22px; text-align: left; transition: all .2s; cursor: pointer; text-decoration: none; }
+.card:hover { border-color: #00B69F; transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,182,159,.15); }
+.badge { display: inline-flex; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+.v1 .badge { background: #00897B20; color: #00897B; }
+.v2 .badge { background: #00B69F20; color: #00B69F; }
+.v3 .badge { background: #FF3B5C20; color: #FF3B5C; }
+.card h2 { font-size: 17px; font-weight: 700; color: #FFF; margin-bottom: 6px; line-height: 1.3; }
+.card p { font-size: 12px; color: #7A8B9E; line-height: 1.5; margin-bottom: 14px; }
+.cta { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+.v1 .cta { color: #00897B; }
+.v2 .cta { color: #00B69F; }
+.v3 .cta { color: #FF3B5C; }
+.allclear { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; margin-top: 8px; }
+.v1 .allclear { background: #00897B15; color: #00897B; }
+.v2 .allclear { background: #00B69F15; color: #00B69F; }
+.v3 .allclear { background: #FF3B5C15; color: #FF3B5C; }
+.footer { margin-top: 36px; font-size: 12px; color: #4A5568; }
+@media (max-width: 800px) { .cards { grid-template-columns: 1fr; } .container { padding: 24px; } }
+</style>
+</head>
+<body>
+<a href="../full-product-roadmap.html" class="back-link">← Back to All Products</a>
+<div class="container">
+  <div class="logo-area">
+    <img src="data:image/png;base64,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" alt="Fourth">
+    <span>Fourth</span>
+  </div>
+  <h1>iQ Manager App</h1>
+  <p class="sub">Interactive prototypes — 3 design directions</p>
+  <div class="cards">
+    <a href="v1.html" class="card v1">
+      <div class="badge">VERSION 1</div>
+      <h2>Card-Based Dashboard</h2>
+      <p>Familiar card layout with expandable actions, workflow deadlines, and AI suggestions. Closest to current product patterns.</p>
+      <span class="cta">Open prototype →</span>
+      <div class="allclear">All Clear: Shift Report</div>
+    </a>
+    <a href="v2.html" class="card v2">
+      <div class="badge">VERSION 2</div>
+      <h2>Explicit Priority List</h2>
+      <p>Numbered priority queue with split-panel detail view. Manager sees the full shape of their day before committing to any item.</p>
+      <span class="cta">Open prototype →</span>
+      <div class="allclear">All Clear: What's Next</div>
+    </a>
+    <a href="v3.html" class="card v3">
+      <div class="badge">VERSION 3</div>
+      <h2>Dynamic Command Centre</h2>
+      <p>Real-time decision engine with dominant priority panel, live performance strip, and state-adaptive interface.</p>
+      <span class="cta">Open prototype →</span>
+      <div class="allclear">All Clear: Live Dashboard</div>
+    </a>
+  </div>
+  <p class="footer">Fourth Product · iQ Manager App Prototypes · Confidential</p>
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLScJuSWdNaOmVSULQqaGxhQG0UltQnVE_5wUPO3b55hFINmjgQ/viewform" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:12px 24px;background:#00B69F;color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:background .15s" onmouseover="this.style.background='#009E8A'" onmouseout="this.style.background='#00B69F'">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Give Feedback
+  </a>
+</div>
+</body>
+</html>
