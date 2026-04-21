@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourth iQ Manager App — Feedback Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+.back-link { position: fixed; top: 20px; left: 20px; color: #002747; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; opacity: 0.7; transition: opacity 0.3s; z-index: 1000; }
+.back-link:hover { opacity: 1; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #F5F5F5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.survey { background: #fff; border-radius: 20px; max-width: 640px; width: 100%; padding: 36px 32px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.logo { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.logo-mark { width: 32px; height: 32px; background: #002747; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 18px; height: 18px; }
+.logo-text { font-size: 18px; font-weight: 700; color: #002747; }
+h1 { font-size: 24px; font-weight: 800; color: #002747; margin-bottom: 6px; }
+.sub { font-size: 14px; color: #647282; margin-bottom: 28px; line-height: 1.5; }
+.field { margin-bottom: 22px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #002747; margin-bottom: 8px; }
+.field .hint { font-size: 11px; color: #8E99A8; font-weight: 400; margin-left: 4px; }
+.radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.radio-card { flex: 1; min-width: 140px; }
+.radio-card input { display: none; }
+.radio-card .card { display: block; border: 2px solid #E8ECF0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all .15s; text-align: center; }
+.radio-card input:checked + .card { border-color: #00B69F; background: rgba(0,182,159,.06); }
+.radio-card .card:hover { border-color: #00B69F; }
+.card-label { font-size: 13px; font-weight: 700; color: #002747; margin-bottom: 2px; }
+.card-desc { font-size: 10px; color: #8E99A8; line-height: 1.4; }
+.rating { display: flex; gap: 6px; }
+.rating label { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+.rating input { display: none; }
+.rating .dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #E8ECF0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #8E99A8; transition: all .15s; }
+.rating input:checked ~ .dot, .rating label:hover .dot { border-color: #00B69F; background: #00B69F; color: #fff; }
+.rating .dot-label { font-size: 8px; color: #B0BCCA; }
+textarea, input[type="text"], input[type="email"] {
+  width: 100%; padding: 10px 14px; border: 1.5px solid #E8ECF0; border-radius: 8px;
+  font-size: 13px; font-family: 'Inter', sans-serif; color: #002747; outline: none;
+  transition: border-color .15s; resize: vertical;
+}
+textarea:focus, input[type="text"]:focus, input[type="email"]:focus { border-color: #00B69F; }
+textarea { min-height: 70px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.submit-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 10px;
+  background: #002747; color: #fff; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.submit-btn:hover { background: #0C4A7D; }
+.submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+.back { display: block; text-align: center; margin-top: 16px; color: #00B69F; font-size: 12px; font-weight: 600; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+.success { display: none; text-align: center; padding: 40px 20px; }
+.success .tick { width: 56px; height: 56px; border-radius: 50%; background: rgba(0,182,159,.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.success h2 { font-size: 22px; font-weight: 800; color: #002747; margin-bottom: 8px; }
+.success p { font-size: 14px; color: #647282; line-height: 1.6; }
+.divider { height: 1px; background: #E8ECF0; margin: 24px 0; }
+@media (max-width: 500px) { .radio-group { flex-direction: column; } .row { grid-template-columns: 1fr; } .survey { padding: 24px 20px; } }
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">← Back to Prototypes</a>
+<div class="survey">
+  <!-- Form -->
+  <div id="form-area">
+    <div class="logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+      <span class="logo-text">Fourth</span>
+    </div>
+    <h1>Manager App Feedback</h1>
+    <p class="sub">Thank you for reviewing the iQ Manager App prototypes. Your feedback will directly shape the product. This takes about 2 minutes.</p>
+
+    <form id="survey-form" action="https://api.web3forms.com/submit" method="POST">
+      <!-- Web3Forms access key — replace with your verified key -->
+      <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
+      <input type="hidden" name="subject" value="iQ Manager App — CAB Feedback">
+      <input type="hidden" name="from_name" value="Fourth CAB Survey">
+
+      <!-- Q1: Version preference -->
+      <div class="field">
+        <label>Which version did you prefer? <span class="hint">(select one)</span></label>
+        <div class="radio-group">
+          <label class="radio-card"><input type="radio" name="preferred_version" value="Version 1 — Card-Based Dashboard" required><div class="card"><div class="card-label">Version 1</div><div class="card-desc">Card-Based Dashboard</div></div></label>
+          <label class="radio-card"><input type="radio" name="preferred_version" value="Version 2 — Explicit Priority List"><div class="card"><div class="card-label">Version 2</div><div class="card-desc">Explicit Priority List</div></div></label>
+          <label class="radio-card"><input type="radio" name="preferred_version" value="Version 3 — Dynamic Command Centre"><div class="card"><div class="card-label">Version 3</div><div class="card-desc">Dynamic Command Centre</div></div></label>
+        </div>
+      </div>
+
+      <!-- Q2: Intuitive -->
+      <div class="field">
+        <label>How intuitive was the layout? <span class="hint">(1 = confusing, 5 = very intuitive)</span></label>
+        <div class="rating">
+          <label><input type="radio" name="intuitive_rating" value="1" required><span class="dot">1</span><span class="dot-label">Poor</span></label>
+          <label><input type="radio" name="intuitive_rating" value="2"><span class="dot">2</span><span class="dot-label"></span></label>
+          <label><input type="radio" name="intuitive_rating" value="3"><span class="dot">3</span><span class="dot-label">OK</span></label>
+          <label><input type="radio" name="intuitive_rating" value="4"><span class="dot">4</span><span class="dot-label"></span></label>
+          <label><input type="radio" name="intuitive_rating" value="5"><span class="dot">5</span><span class="dot-label">Great</span></label>
+        </div>
+      </div>
+
+      <!-- Q3: Daily use -->
+      <div class="field">
+        <label>How likely would you use this daily? <span class="hint">(1 = unlikely, 5 = definitely)</span></label>
+        <div class="rating">
+          <label><input type="radio" name="daily_use_rating" value="1" required><span class="dot">1</span><span class="dot-label">Never</span></label>
+          <label><input type="radio" name="daily_use_rating" value="2"><span class="dot">2</span><span class="dot-label"></span></label>
+          <label><input type="radio" name="daily_use_rating" value="3"><span class="dot">3</span><span class="dot-label">Maybe</span></label>
+          <label><input type="radio" name="daily_use_rating" value="4"><span class="dot">4</span><span class="dot-label"></span></label>
+          <label><input type="radio" name="daily_use_rating" value="5"><span class="dot">5</span><span class="dot-label">Daily</span></label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Q4: What worked -->
+      <div class="field">
+        <label>What worked well?</label>
+        <textarea name="what_worked" placeholder="e.g. The priority list made it clear what to do first..." rows="3"></textarea>
+      </div>
+
+      <!-- Q5: What was confusing -->
+      <div class="field">
+        <label>What was confusing or missing?</label>
+        <textarea name="what_confusing" placeholder="e.g. I wasn't sure where to find..." rows="3"></textarea>
+      </div>
+
+      <!-- Q6: What would you add -->
+      <div class="field">
+        <label>What feature would make this most useful for your daily shift?</label>
+        <textarea name="feature_request" placeholder="e.g. I'd love to see real-time labour cost updates..." rows="3"></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Q7: About you (optional) -->
+      <div class="row">
+        <div class="field">
+          <label>Your name <span class="hint">(optional)</span></label>
+          <input type="text" name="respondent_name" placeholder="First name">
+        </div>
+        <div class="field">
+          <label>Your role <span class="hint">(optional)</span></label>
+          <input type="text" name="respondent_role" placeholder="e.g. General Manager">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Company <span class="hint">(optional)</span></label>
+          <input type="text" name="respondent_company" placeholder="e.g. TRG, Wagamama">
+        </div>
+        <div class="field">
+          <label>Number of sites you manage <span class="hint">(optional)</span></label>
+          <input type="text" name="respondent_sites" placeholder="e.g. 1, 5, 20+">
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">
+        Submit Feedback
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+    <a href="index.html" class="back">← Back to prototypes</a>
+  </div>
+
+  <!-- Success state -->
+  <div class="success" id="success-area">
+    <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00B69F" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h2>Thank you!</h2>
+    <p>Your feedback has been submitted and sent to the Fourth product team. It will directly influence the design of the Manager App.</p>
+    <a href="index.html" class="back" style="margin-top:20px">← Back to prototypes</a>
+  </div>
+</div>
+
+<script>
+document.getElementById('survey-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = 'Submitting...';
+  try {
+    const resp = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: new FormData(this)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      document.getElementById('form-area').style.display = 'none';
+      document.getElementById('success-area').style.display = 'block';
+    } else {
+      btn.innerHTML = 'Error — try again';
+      btn.disabled = false;
+    }
+  } catch(err) {
+    btn.innerHTML = 'Error — try again';
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

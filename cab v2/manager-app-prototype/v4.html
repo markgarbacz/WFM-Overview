@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourth Manager App — Today Flow Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:3px solid #007F6F;outline-offset:2px}
+.back-link { position: fixed; top: 20px; left: 20px; color: #0C4A7D; text-decoration: none; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; opacity: 0.9; transition: opacity 0.3s; z-index: 1000; }
+.back-link:hover { opacity: 1; }
+
+/* ── Design Tokens (WCAG AA verified) ──────────────────── */
+:root{
+  /* Brand */
+  --cn:#002747; --cd:#0C4A7D; --ct:#00B69F;
+  --csk:#6FB4E3; --cg:#CFD1D1; --cw:#F5F5F5;
+  --co:#FAA51A; --cp:#9678B6; --cr:#D81632;
+  /* Tints (decorative) */
+  --ct-t:rgba(0,182,159,.10); --ct-b:rgba(0,182,159,.30);
+  --co-t:rgba(250,165,26,.10); --co-b:rgba(250,165,26,.30);
+  --cr-t:rgba(216,22,50,.08);  --cr-b:rgba(216,22,50,.25);
+  --cp-t:rgba(150,120,182,.10); --csk-t:rgba(111,180,227,.10);
+  /* Accessible text (WCAG AA) */
+  --tp:#002747; --ts:#4A5568; --tm:#647282;
+  --tt:#007F6F; --to:#9E6302; --tr:#CD142F;
+  --tpurp:#7E59A5; --tsky:#2275AF;
+  /* Dark surface text */
+  --td:#fff; --tds:rgba(255,255,255,.65);
+  /* Surfaces */
+  --bg:#F5F5F5; --bgc:#fff; --bgh:#F9FAFB;
+  --bd:#E8ECF0; --bds:#CBD2DA;
+  /* Shadows */
+  --sh:0 1px 3px rgba(0,39,71,.06),0 4px 12px rgba(0,39,71,.06);
+  --she:0 4px 16px rgba(0,39,71,.12),0 1px 4px rgba(0,39,71,.08);
+  --ff:'Roboto',sans-serif;
+}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+/* ── App shell ──────────────────────────────────────────── */
+body{
+  font-family:var(--ff);
+  background:#F5F5F5;
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:40px 24px;
+}
+
+/* iPad Pro 11" frame — 834×1194 viewport ratio, landscape */
+.ipad-frame{
+  position:relative;
+  width:1194px;
+  height:870px;
+  flex-shrink:0;
+}
+
+/* Outer aluminium body */
+.ipad-shell{
+  position:absolute;inset:0;
+  background:linear-gradient(145deg,#E8E8E8 0%,#D0D0D0 40%,#C8C8C8 100%);
+  border-radius:36px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.5) inset,
+    0 0 0 1px rgba(0,0,0,.15),
+    0 40px 80px rgba(0,0,0,.6),
+    0 8px 24px rgba(0,0,0,.4);
+}
+
+/* Screen bezel */
+.ipad-bezel{
+  position:absolute;
+  inset:12px;
+  background:#111;
+  border-radius:24px;
+  overflow:hidden;
+}
+
+/* Home bar / button area left side (iPad landscape) */
+.ipad-btn-left{
+  position:absolute;
+  left:-3px;top:50%;transform:translateY(-50%);
+  width:4px;height:60px;
+  background:linear-gradient(180deg,#C0C0C0,#A8A8A8);
+  border-radius:2px 0 0 2px;
+}
+
+/* Volume buttons right side */
+.ipad-btn-r1,.ipad-btn-r2{
+  position:absolute;
+  right:-3px;
+  width:4px;height:36px;
+  background:linear-gradient(180deg,#C0C0C0,#A8A8A8);
+  border-radius:0 2px 2px 0;
+}
+.ipad-btn-r1{top:calc(50% - 50px)}
+.ipad-btn-r2{top:calc(50% + 14px)}
+
+/* Front camera top-right in landscape */
+.ipad-camera{
+  position:absolute;
+  right:18px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;
+  background:radial-gradient(circle,#1a1a1a 30%,#2a2a2a);
+  border-radius:50%;
+  z-index:5;
+  box-shadow:0 0 0 1.5px #333;
+}
+.ipad-camera::after{
+  content:'';position:absolute;
+  width:3px;height:3px;
+  background:rgba(255,255,255,.15);
+  border-radius:50%;top:1px;left:1px;
+}
+
+/* Home indicator bar (bottom centre) */
+.ipad-home{
+  position:absolute;
+  bottom:6px;left:50%;transform:translateX(-50%);
+  width:80px;height:4px;
+  background:rgba(255,255,255,.25);
+  border-radius:99px;
+  z-index:5;
+}
+
+/* The actual app screen */
+.device{
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  border-radius:22px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ── Prototype label ────────────────────────────────────── */
+.proto-label{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  background:rgba(0,39,71,.85);color:rgba(255,255,255,.75);
+  font-family:var(--ff);font-size:11px;font-weight:500;
+  padding:5px 14px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(8px);
+  z-index:1000;white-space:nowrap;letter-spacing:.03em;
+}
+
+/* ── Top bar ────────────────────────────────────────────── */
+.topbar{
+  flex-shrink:0;height:52px;background:var(--cn);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:50;
+}
+.tl{display:flex;align-items:center;gap:10px}
+.logo{
+  width:28px;height:28px;background:var(--ct);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.brand{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.tdiv{width:1px;height:18px;background:rgba(255,255,255,.18)}
+.tscreen{font-size:13px;color:var(--tds);font-weight:400}
+.tr{display:flex;align-items:center;gap:12px}
+.tmeta{font-size:11px;color:var(--tds)}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--ct);box-shadow:0 0 6px rgba(0,182,159,.6)}
+.locbtn{
+  display:flex;align-items:center;gap:4px;
+  color:#fff;font-size:13px;font-weight:500;
+  padding:4px 8px;border-radius:6px;
+  transition:background .15s;
+}
+.locbtn:hover{background:rgba(255,255,255,.08)}
+.tav{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--ct);color:var(--cn);
+  font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── Main layout ────────────────────────────────────────── */
+.main{flex:1;display:grid;grid-template-columns:300px 1fr 272px;overflow:hidden;min-height:0}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.sidebar{
+  background:#fff;
+  border-right:1px solid #E8ECF0;
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:#CBD2DA;border-radius:2px}
+.sb-hdr{padding:12px 14px 10px;border-bottom:1px solid #E8ECF0;background:#F5F5F5}
+.sb-title{display:block;font-size:12px;font-weight:700;color:#002747}
+.sb-meta{display:block;font-size:11px;color:#647282;margin-top:2px;font-weight:400}
+.sec{
+  padding:10px 14px 4px;font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#647282;
+  display:flex;align-items:center;gap:6px;
+  cursor:default;
+}
+.sec::after{content:'';flex:1;height:1px;background:#E8ECF0;}
+.sec.sec-toggle{cursor:pointer;user-select:none}
+.sec.sec-toggle:hover{color:#002747}
+.sec-chevron{
+  margin-left:2px;color:#CBD2DA;flex-shrink:0;
+  transition:transform .2s ease;
+}
+.sec.sec-toggle.collapsed .sec-chevron{transform:rotate(-90deg)}
+.sec-items{overflow:hidden;transition:max-height .3s ease, opacity .25s ease;max-height:300px;}
+.sec-items.collapsed{max-height:0;opacity:0;pointer-events:none;}
+
+/* Progress bar */
+.sb-progress{padding:8px 14px 4px;display:flex;flex-direction:column;gap:4px}
+.sb-progress-track{
+  height:4px;background:#E8ECF0;border-radius:99px;overflow:hidden;
+}
+.sb-progress-fill{
+  height:100%;border-radius:99px;background:#00B69F;
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+  width:0%;
+}
+.sb-progress-label{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.sb-progress-pct{font-size:11px;font-weight:700;color:#007F6F}
+.sb-progress-remain{font-size:11px;color:#647282}
+
+/* Priority list item */
+.pli{
+  position:relative;display:flex;align-items:flex-start;gap:10px;
+  width:100%;padding:11px 14px 11px 18px;
+  border:none;border-bottom:1px solid #E8ECF0;
+  cursor:pointer;text-align:left;font-family:var(--ff);
+  background:transparent;transition:background .13s;overflow:hidden;
+}
+.pli::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  border-radius:0 2px 2px 0;
+}
+.pli.urgent-now::before{ background:#D81632; }
+.pli.urgent-today::before{ background:#FAA51A; }
+.pli.urgent-wf::before{ background:#6FB4E3; }
+.pli:last-child{border-bottom:none}
+.pli:hover{background:#F5F5F5}
+.pli.active{background:rgba(0,182,159,.08)}
+.pli.done{opacity:.4}
+.pli-num{
+  width:26px;height:26px;border-radius:50%;
+  border:1.5px solid #CBD2DA;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#647282;
+  flex-shrink:0;margin-top:1px;transition:all .15s;
+}
+.pli-num.urgent{border-color:#D81632;color:#CD142F;background:rgba(216,22,50,.08)}
+.pli-num.active{background:#00B69F;border-color:#00B69F;color:#fff}
+.pli-num.done-num{background:#F5F5F5;border-color:#E8ECF0;color:#CBD2DA}
+.pli-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pli-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pli-type{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.t-act{color:#CD142F} .t-comp{color:#9E6302} .t-wf{color:#2275AF}
+.pli-ts{font-size:10px;font-weight:500}
+.ts-now,.ts-ov{color:#CD142F} .ts-td{color:#9E6302} .ts-up{color:#647282}
+.pli-title{font-size:13px;font-weight:500;color:#002747;line-height:1.3}
+.pli-sub{font-size:11px;color:#647282;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.active-bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:#00B69F;border-radius:0 3px 3px 0}
+
+/* ── Detail panel ───────────────────────────────────────── */
+.detail{overflow-y:auto;background:var(--bg);border-right:1px solid var(--bd);position:relative}
+.detail::-webkit-scrollbar{width:3px}
+.detail::-webkit-scrollbar-thumb{background:var(--bds);border-radius:2px}
+.detail-inner{padding:28px 28px;display:flex;flex-direction:column;gap:20px;min-height:100%}
+
+/* Slide transition for detail content */
+.detail-content{
+  display:flex;flex-direction:column;gap:16px;
+  animation:slideIn .18s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.all-done-screen{animation:slideIn .3s ease;}
+
+.d-meta{display:flex;align-items:center;justify-content:space-between}
+.d-nav{display:flex;align-items:center;gap:4px}
+.d-nav-btn{
+  width:28px;height:28px;border-radius:8px;
+  border:1px solid #E8ECF0;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#647282;
+  transition:background .13s,border-color .13s,color .13s;
+}
+.d-nav-btn:hover:not(:disabled){background:#F5F5F5;border-color:#CBD2DA;color:#002747}
+.d-nav-btn:disabled{opacity:.35;cursor:not-allowed}
+.d-nav-btn:focus-visible{outline:2px solid #007F6F;outline-offset:2px}
+.blocker{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.bl-act{background:var(--cr-t);color:var(--tr);border:1px solid var(--cr-b)}
+.bl-comp{background:var(--co-t);color:var(--to);border:1px solid var(--co-b)}
+.bl-wf{background:var(--csk-t);color:var(--tsky);border:1px solid rgba(111,180,227,.3)}
+.d-counter{font-size:12px;color:var(--tm)}
+.d-heading{font-size:22px;font-weight:700;color:var(--tp);line-height:1.25;letter-spacing:-.02em}
+.deadline{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;width:fit-content}
+.dl-now{background:var(--cr-t);color:var(--tr);border:1px solid var(--cr-b)}
+.dl-today{background:var(--co-t);color:var(--to);border:1px solid var(--co-b)}
+.dl-done{background:var(--ct-t);color:var(--tt);border:1px solid var(--ct-b)}
+
+/* Expand/collapse toggle */
+.expand-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;width:100%;
+  background:#F5F5F5;border:1px solid #E8ECF0;
+  border-radius:10px;cursor:pointer;
+  font-family:var(--ff);font-size:12px;font-weight:500;
+  color:#4A5568;padding:10px 14px;
+  transition:background .13s,border-color .13s;
+}
+.expand-toggle:hover{background:#ECEEF1;border-color:#CBD2DA;color:#002747}
+.expand-toggle:focus-visible{outline:2px solid #007F6F;outline-offset:2px}
+.expand-toggle svg{transition:transform .2s ease;flex-shrink:0;color:#9AA5B1}
+.expand-toggle.open svg{transform:rotate(180deg)}
+
+.collapsible{
+  display:flex;flex-direction:column;gap:16px;
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:max-height .35s ease, opacity .25s ease;
+}
+.collapsible.open{
+  max-height:800px;
+  opacity:1;
+}
+
+/* Divider */
+.detail-divider{height:1px;background:#E8ECF0;margin:0 -28px}
+
+/* iQ panel */
+.iq{background:rgba(0,182,159,.08);border:1px solid rgba(0,182,159,.3);border-radius:10px;padding:12px 14px}
+.iq-hdr{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.iq-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tt)}
+.iq-body{font-size:13px;color:var(--tp);line-height:1.6}
+.iq-body b{font-weight:700}
+
+/* Two-column */
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.d-col-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tm);margin-bottom:8px}
+.d-item{margin-bottom:8px}
+.d-item:last-child{margin-bottom:0}
+.d-iname{display:block;font-size:13px;font-weight:500;color:var(--tp)}
+.d-idetail{display:block;font-size:12px;color:var(--ts);margin-top:1px;line-height:1.4}
+
+/* Consequence */
+.cons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--cn);border-radius:12px;padding:14px}
+.cons-lbl{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px}
+.cons-txt{font-size:12px;color:#fff;line-height:1.4}
+.cons-txt b{font-weight:700}
+
+/* Risk tags */
+.risk-row{display:flex;gap:8px;flex-wrap:wrap}
+.risk-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:5px 10px;border-radius:8px}
+.risk-red{background:var(--cr-t);color:var(--tr);border:1px solid var(--cr-b)}
+.risk-orange{background:var(--co-t);color:var(--to);border:1px solid var(--co-b)}
+
+/* CTAs */
+.ctas{display:flex;flex-direction:column;gap:8px;}
+.btn-p{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:13px 20px;background:var(--cn);color:#fff;
+  border-radius:10px;font-size:14px;font-weight:500;
+  transition:background .13s,transform .1s;
+}
+.btn-p:hover{background:var(--cd)} .btn-p:active{transform:scale(.99)}
+.btn-s{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  align-self:flex-start;
+  padding:7px 14px;background:transparent;color:var(--ts);
+  border:1px solid var(--bds);border-radius:8px;
+  font-size:12px;font-weight:400;
+  transition:background .13s,color .13s;
+}
+.btn-s:hover{background:var(--bgh);color:var(--tp)}
+
+/* Done state overlay */
+.done-overlay{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;padding:40px;text-align:center;flex:1;
+}
+.done-check{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--ct-t);border:2px solid var(--ct-b);
+  display:flex;align-items:center;justify-content:center;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.done-title{font-size:18px;font-weight:700;color:var(--tp)}
+.done-sub{font-size:13px;color:var(--ts);max-width:280px;line-height:1.5}
+.btn-next{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 20px;background:var(--cn);color:#fff;
+  border-radius:10px;font-size:13px;font-weight:500;
+  margin-top:4px;transition:background .13s;
+}
+.btn-next:hover{background:var(--cd)}
+
+/* All-done completion screen */
+.all-done-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;padding:40px;text-align:center;gap:20px;
+  animation:slideIn .3s ease;
+}
+.all-done-logo{
+  width:56px;height:56px;background:#00B69F;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(0,182,159,.3);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+.all-done-ring{
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(0,182,159,.08);border:2px solid rgba(0,182,159,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.all-done-heading{
+  font-size:24px;font-weight:700;color:#002747;
+  letter-spacing:-.02em;line-height:1.2;
+}
+.all-done-sub{
+  font-size:14px;color:#4A5568;max-width:260px;line-height:1.6;
+}
+.all-done-stats{
+  display:flex;gap:16px;
+}
+.all-done-stat{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:12px 20px;background:#F5F5F5;border-radius:12px;
+  border:1px solid #E8ECF0;
+}
+.all-done-stat-num{font-size:22px;font-weight:700;color:#007F6F}
+.all-done-stat-lbl{font-size:11px;color:#647282}
+.all-done-time{
+  font-size:12px;color:#647282;
+  padding:6px 14px;background:#F5F5F5;
+  border-radius:99px;border:1px solid #E8ECF0;
+}
+
+/* ── Right panel ────────────────────────────────────────── */
+.rpanel{overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#EEEEEE}
+.rpanel::-webkit-scrollbar{width:3px}
+.rpanel::-webkit-scrollbar-thumb{background:var(--bds);border-radius:2px}
+
+/* Business snapshot */
+.bs{background:var(--bgc);border:1px solid var(--bd);border-radius:13px;padding:12px;box-shadow:var(--sh)}
+.bs-slbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tm);margin-bottom:6px}
+.bs-weather{display:flex;align-items:center;gap:5px;margin-bottom:10px;padding:5px 8px;background:rgba(0,182,159,.06);border-radius:6px;border:1px solid rgba(0,182,159,.15)}
+.bs-weather-icon{font-size:12px;line-height:1;flex-shrink:0}
+.bs-weather-txt{font-size:11px;color:#007F6F;font-weight:500;line-height:1.3}
+.bs-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px}
+.bs-m{display:flex;flex-direction:column;gap:2px}
+.bs-mlbl{font-size:10px;color:var(--ts);text-transform:uppercase;letter-spacing:.06em}
+.bs-mval{font-size:15px;font-weight:500;color:var(--tp);letter-spacing:-.01em;line-height:1.1}
+.bs-delta{font-size:11px;font-weight:500}
+.d-up{color:var(--tt)} .d-dn{color:var(--tr)} .d-neu{color:var(--ts)}
+.bs-prog-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tm);margin-bottom:6px}
+.bs-pr{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
+.bs-pr:last-child{margin-bottom:0}
+.bs-pm{display:flex;justify-content:space-between;align-items:center}
+.bs-pname{font-size:12px;color:var(--tp)}
+.bs-pval{font-size:11px;font-weight:500}
+.pv-g{color:var(--tt)} .pv-w{color:var(--to)} .pv-o{color:var(--tr)}
+.bs-track{height:3px;background:var(--bd);border-radius:99px;overflow:hidden;margin-top:2px}
+.bs-fill{height:100%;border-radius:99px;transition:width .4s ease}
+.f-g{background:var(--ct)} .f-w{background:var(--co)} .f-o{background:var(--cr)}
+
+
+
+/* ── Right panel cards (design-system compliant) ─────────────────── */
+.rp-card{
+  background:#fff;border:1px solid #E8ECF0;border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,39,71,.06),0 4px 12px rgba(0,39,71,.06);
+}
+.card-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;border-bottom:1px solid #E8ECF0;
+}
+.card-title{font-size:11px;font-weight:500;color:#4A5568;letter-spacing:.01em}
+.card-badge{
+  font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 8px;border-radius:99px;
+}
+.cb-over{background:rgba(216,22,50,.08);color:#CD142F;border:1px solid rgba(216,22,50,.25)}
+.cb-warn{background:rgba(250,165,26,.10);color:#9E6302;border:1px solid rgba(250,165,26,.30)}
+.cb-good{background:rgba(0,182,159,.10);color:#007F6F;border:1px solid rgba(0,182,159,.30)}
+
+/* Labour chart */
+.chart-body{padding:8px 12px 0}
+.chart-wrap{
+  display:flex;align-items:flex-end;gap:2px;
+  height:44px;position:relative;
+}
+.chart-bar-wrap{display:flex;flex-direction:column-reverse;align-items:center;gap:0;flex:1}
+.chart-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;flex-shrink:0}
+.cb-under{background:#00B69F}
+.cb-above{background:#D81632}
+.cb-future{background:#E8ECF0}
+.chart-lbl{font-size:9px;color:#647282;text-align:center}
+.target-line{
+  position:absolute;left:0;right:0;
+  border-top:1.5px dashed rgba(205,20,47,.4);
+  pointer-events:none;
+}
+.chart-legend{
+  display:flex;gap:10px;padding:6px 12px 8px;
+  border-top:1px solid #E8ECF0;margin-top:4px;
+}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#647282}
+.legend-dot{width:8px;height:6px;border-radius:2px;flex-shrink:0}
+
+/* Team on shift */
+.team-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:#E8ECF0;border-bottom:1px solid #E8ECF0;
+}
+.team-stat{
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 4px 10px;background:#fff;gap:3px;
+}
+.ts-num{font-size:17px;font-weight:700;line-height:1}
+.ts-lbl{font-size:11px;color:#647282;text-align:center;line-height:1.2}
+.ts-clocked{color:#007F6F}
+.ts-late{color:#9E6302}
+.ts-missing{color:#CD142F}
+.team-list{display:flex;flex-direction:column}
+.team-member{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-bottom:1px solid #E8ECF0;
+  transition:background .12s;
+}
+.team-member:last-child{border-bottom:none}
+.team-member:hover{background:#F9FAFB}
+.tm-av{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.av-teal{background:#00B69F} .av-orange{background:#9E6302}
+.av-red{background:#CD142F} .av-cn{background:#002747}
+.tm-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.tm-name{font-size:12px;font-weight:500;color:#002747}
+.tm-role{font-size:11px;color:#647282}
+.tm-status{
+  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:3px 7px;border-radius:99px;flex-shrink:0;
+}
+.tms-on{background:rgba(0,182,159,.10);color:#007F6F;border:1px solid rgba(0,182,159,.30)}
+.tms-late{background:rgba(250,165,26,.10);color:#9E6302;border:1px solid rgba(250,165,26,.30)}
+.tms-missing{background:rgba(216,22,50,.08);color:#CD142F;border:1px solid rgba(216,22,50,.25)}
+.team-more{
+  font-size:11px;color:#647282;text-align:center;
+  padding:6px 14px;border-top:1px solid #E8ECF0;
+}
+
+/* Weather & footfall */
+.weather-main{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px 9px;border-bottom:1px solid #E8ECF0;
+}
+.weather-icon{font-size:24px;line-height:1;flex-shrink:0}
+.weather-right{flex:1;display:flex;flex-direction:column;gap:3px}
+.weather-temp{font-size:18px;font-weight:700;color:#002747;line-height:1;letter-spacing:-.02em}
+.weather-desc{font-size:11px;color:#647282}
+.weather-impact{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;
+}
+.wi-pos{background:rgba(0,182,159,.10);color:#007F6F;border:1px solid rgba(0,182,159,.30)}
+.wi-neg{background:rgba(216,22,50,.08);color:#CD142F;border:1px solid rgba(216,22,50,.25)}
+.footfall-body{padding:8px 12px 10px}
+.footfall-lbl{
+  display:block;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:#647282;margin-bottom:8px;
+}
+.footfall-bars{display:flex;flex-direction:column;gap:4px}
+.ff-row{display:flex;align-items:center;gap:8px}
+.ff-time{font-size:10px;color:#647282;width:32px;flex-shrink:0;text-align:right;font-weight:500}
+.ff-track{
+  flex:1;height:8px;border-radius:99px;overflow:hidden;
+  background:#F5F5F5;position:relative;
+}
+.ff-forecast{position:absolute;top:0;left:0;height:100%;border-radius:99px;background:#E8ECF0}
+.ff-actual{position:absolute;top:0;left:0;height:100%;border-radius:99px;background:#00B69F}
+.ff-val{font-size:10px;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+.fv-good{color:#007F6F} .fv-miss{color:#CD142F} .fv-fore{color:#647282}
+.ff-legend{display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid #E8ECF0}
+
+/* ── Bottom nav ─────────────────────────────────────────── */
+.navbar{flex-shrink:0;height:56px;background:var(--cn);border-top:1px solid rgba(255,255,255,.08);display:flex;z-index:10}
+.ni{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:rgba(255,255,255,.38);cursor:pointer;position:relative;
+  font-family:var(--ff);transition:color .15s;padding:0 4px;
+}
+.ni.a{color:var(--ct)}
+.ni-ind{position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--ct);border-radius:0 0 3px 3px}
+.ni-badge{
+  position:absolute;top:6px;right:calc(50% - 17px);
+  min-width:15px;height:15px;padding:0 3px;
+  background:var(--cr);color:#fff;font-size:8px;font-weight:700;
+  border-radius:99px;display:flex;align-items:center;justify-content:center;
+  border:1.5px solid var(--cn);
+}
+.ni-lbl{font-size:10px;font-weight:400}
+.ni.a .ni-lbl{font-weight:500}
+
+/* ── Toast notification ─────────────────────────────────── */
+.toast{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--cn);color:#fff;font-size:12px;font-weight:500;
+  padding:8px 16px;border-radius:99px;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;gap:7px;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:var(--ct);flex-shrink:0}
+.page-view{height:calc(100% - 44px - 56px);position:absolute;top:44px;left:0;right:0;overflow:hidden}
+.main{position:relative}
+.ops-item,.rt-item{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border-left:3px solid transparent;border-radius:0 6px 6px 0;transition:background .15s}
+.ops-item:hover,.rt-item:hover{background:rgba(255,255,255,.05)}
+.ops-item.active,.rt-item.active{background:rgba(12,74,125,.4);border-left-color:var(--ct)}
+.ops-item .ops-icon,.rt-item .rt-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.ops-item .ops-label{font-size:13px;font-weight:600;color:#fff}
+.ops-item .ops-sub{font-size:10px;color:var(--tds)}
+.sum-card{background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:12px;border:1px solid var(--bd)}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sum-lbl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.sum-val{font-size:12px;font-weight:700;color:var(--tp)}
+.sum-desc{font-size:10px;color:var(--ts)}
+.ai-sug{background:rgba(0,182,159,.08);border:1px solid rgba(0,182,159,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.kpi-card{background:var(--bg);border-radius:8px;padding:12px;text-align:center}
+.kpi-val{font-size:20px;font-weight:800}
+.kpi-lbl{font-size:9px;color:var(--ts)}
+.sec-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.sec-btn{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:#fff;color:var(--ts);font-size:11px;font-weight:500;cursor:pointer;font-family:var(--ff)}
+.sec-btn:hover{border-color:var(--ct);background:var(--ct-t)}
+.de-title{font-size:8px;font-weight:700;color:var(--tm);letter-spacing:.08em;text-transform:uppercase;margin:6px 0 8px}
+.collapse-hdr{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:12px 0}
+.collapse-hdr h4{font-size:13px;font-weight:700;color:var(--tp);margin:0}
+.collapse-hdr .sub{font-size:11px;color:var(--tm)}
+.perf-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:3px}
+.perf-fill{height:100%;border-radius:3px}
+.act-row{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;border-radius:0 6px 6px 0;margin-bottom:1px}
+.act-row:hover{background:rgba(255,255,255,.05)}
+.act-row.active{background:rgba(12,74,125,.4);border-left-color:var(--ct)}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">← Back</a>
+
+<div class="proto-label">Fourth Manager App — Today Flow · Version 4</div>
+
+<div class="ipad-frame">
+  <div class="ipad-shell"></div>
+  <div class="ipad-btn-left"></div>
+  <div class="ipad-btn-r1"></div>
+  <div class="ipad-btn-r2"></div>
+  <div class="ipad-bezel">
+    <div class="ipad-camera"></div>
+    <div class="ipad-home"></div>
+    <div class="device" role="main" aria-label="Fourth Manager App prototype">
+
+  <!-- TOP BAR -->
+  <header class="topbar" role="banner">
+    <div class="tl">
+      <div class="logo" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#002747" stroke-width="2.5" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+      </div>
+      <span class="brand">Fourth</span>
+      <div class="tdiv" aria-hidden="true"></div>
+      <span class="tscreen">Today's Actions</span>
+    </div>
+    <div class="tr">
+      <span class="tmeta" id="done-label" aria-live="polite" aria-atomic="true">0 / 6 done</span>
+      <div class="tdot" aria-hidden="true"></div>
+      <button class="locbtn" aria-label="Current location: Downtown Restaurant">
+        Downtown Restaurant
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <span class="tmeta">Mon 11:24</span>
+      <div class="tav" role="img" aria-label="Manager: NE">NE</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Actions list">
+      <div class="sb-hdr">
+        <span class="sb-title">Requiring Action Today</span>
+        <span class="sb-meta" id="sidebar-meta">2 urgent · 6 total</span>
+      </div>
+      <div class="sb-progress">
+        <div class="sb-progress-label">
+          <span class="sb-progress-pct" id="progress-pct">0% complete</span>
+          <span class="sb-progress-remain" id="progress-remain">6 remaining</span>
+        </div>
+        <div class="sb-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="6" aria-label="Today's actions progress" id="progress-bar-wrap">
+          <div class="sb-progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="sec" role="heading" aria-level="3">Act Now</div>
+
+      <button class="pli active" onclick="select(1)" id="pli-1" aria-current="true" data-urgency="now" aria-label="Action 1 of 6: Allergen information must be updated before service. Urgent.">
+        <div class="active-bar" aria-hidden="true"></div>
+        <div class="pli-num active" id="num-1" aria-hidden="true">1</div>
+        <div class="pli-body">
+          <div class="pli-top">
+            <span class="pli-type t-act">Action Required</span>
+            <span class="pli-ts ts-now">Now</span>
+          </div>
+          <span class="pli-title">Allergen information must be updated before service</span>
+        </div>
+      </button>
+
+      <button class="pli" onclick="select(2)" id="pli-2" data-urgency="now" aria-label="Action 2 of 6: Labour coverage 22% below forecast. By 12:00.">
+        <div class="pli-num urgent" id="num-2" aria-hidden="true">2</div>
+        <div class="pli-body">
+          <div class="pli-top">
+            <span class="pli-type t-act">Action Required</span>
+            <span class="pli-ts ts-now">By 12:00</span>
+          </div>
+          <span class="pli-title">Labour coverage 22% below forecast for peak</span>
+        </div>
+      </button>
+
+      <div class="sec" role="heading" aria-level="3">Today</div>
+
+      <button class="pli" onclick="select(3)" id="pli-3" data-urgency="today" aria-label="Action 3 of 6: Weekly schedule must be authorised. Due today.">
+        <div class="pli-num" id="num-3" aria-hidden="true">3</div>
+        <div class="pli-body">
+          <div class="pli-top">
+            <span class="pli-type t-act">Action Required</span>
+            <span class="pli-ts ts-td">Due today</span>
+          </div>
+          <span class="pli-title">Weekly schedule must be authorised for service</span>
+        </div>
+      </button>
+
+      <button class="pli" onclick="select(4)" id="pli-4" data-urgency="today" aria-label="Action 4 of 6: Right to work documentation incomplete. End of day.">
+        <div class="pli-num" id="num-4" aria-hidden="true">4</div>
+        <div class="pli-body">
+          <div class="pli-top">
+            <span class="pli-type t-comp">Compliance Alert</span>
+            <span class="pli-ts ts-td">End of day</span>
+          </div>
+          <span class="pli-title">Right to work documentation incomplete — 3 staff</span>
+        </div>
+      </button>
+
+      <div class="sec sec-toggle collapsed" role="button" aria-expanded="false" aria-controls="wf-items" tabindex="0" id="wf-sec" onclick="toggleWf()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleWf()">
+        Workflow Deadlines
+        <span class="sec-chevron" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="sec-items collapsed" id="wf-items">
+        <button class="pli" onclick="select(5)" id="pli-5" data-urgency="wf" aria-label="Workflow 5 of 6: Approve T&A. Overdue.">
+          <div class="pli-num urgent" id="num-5" aria-hidden="true">5</div>
+          <div class="pli-body">
+            <div class="pli-top">
+              <span class="pli-type t-wf">Workforce</span>
+              <span class="pli-ts ts-ov">Overdue</span>
+            </div>
+            <span class="pli-title">Approve T&A</span>
+          </div>
+        </button>
+        <button class="pli" onclick="select(6)" id="pli-6" data-urgency="wf" aria-label="Workflow 6 of 6: Stock count variance. Due today.">
+          <div class="pli-num" id="num-6" aria-hidden="true">6</div>
+          <div class="pli-body">
+            <div class="pli-top">
+              <span class="pli-type t-wf">Inventory</span>
+              <span class="pli-ts ts-td">Due today</span>
+            </div>
+            <span class="pli-title">Stock count variance report</span>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- DETAIL PANEL -->
+    <section class="detail" aria-label="Action detail" aria-live="polite">
+      <div class="detail-inner" id="detail-inner"></div>
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <aside class="rpanel" aria-label="Business snapshot and data">
+
+      <!-- Business Snapshot -->
+      <div class="bs" role="region" aria-label="Business snapshot">
+        <div class="bs-slbl">Business Snapshot — Today vs Target</div>
+        <div class="bs-weather" role="note" aria-label="Weather context">
+          <span class="bs-weather-icon">🌦</span>
+          <span class="bs-weather-txt">14°C · Showers 12–14:00 · Indoor covers boost likely</span>
+        </div>
+        <div class="bs-metrics">
+          <div class="bs-m">
+            <span class="bs-mlbl">Profit</span>
+            <span class="bs-mval">£1,840</span>
+            <span class="bs-delta d-dn" aria-label="Down £210">−£210</span>
+          </div>
+          <div class="bs-m">
+            <span class="bs-mlbl">Labour %</span>
+            <span class="bs-mval">34.2%</span>
+            <span class="bs-delta d-dn" aria-label="Up 4.2%, over target">+4.2%</span>
+          </div>
+          <div class="bs-m">
+            <span class="bs-mlbl">Sales</span>
+            <span class="bs-mval">£6,120</span>
+            <span class="bs-delta d-neu">vs £6,200</span>
+          </div>
+        </div>
+        <div class="bs-prog-lbl">Performance vs Potential</div>
+        <div class="bs-pr">
+          <div class="bs-pm">
+            <span class="bs-pname">Profit today</span>
+            <span class="bs-pval pv-g" aria-label="£1,840 of £2,050 target">£1,840 / £2,050</span>
+          </div>
+          <div class="bs-track" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" aria-label="Profit: 90% of target">
+            <div class="bs-fill f-g" style="width:90%"></div>
+          </div>
+        </div>
+        <div class="bs-pr">
+          <div class="bs-pm">
+            <span class="bs-pname">Labour efficiency</span>
+            <span class="bs-pval pv-o" aria-label="34.2%, target is 30%">34.2% / 30%</span>
+          </div>
+          <div class="bs-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Labour: over target">
+            <div class="bs-fill f-o" style="width:100%"></div>
+          </div>
+        </div>
+        <div class="bs-pr">
+          <div class="bs-pm">
+            <span class="bs-pname">Sales vs forecast</span>
+            <span class="bs-pval pv-w" aria-label="£6,120 of £6,200 forecast">£6,120 / £6,200</span>
+          </div>
+          <div class="bs-track" role="progressbar" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100" aria-label="Sales: 98% of forecast">
+            <div class="bs-fill f-w" style="width:98%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Labour % by Hour -->
+      <div class="rp-card labour-card" role="region" aria-label="Labour percentage by hour">
+        <div class="card-hdr">
+          <span class="card-title">Labour % by Hour</span>
+          <span class="card-badge cb-over" role="status" aria-label="34.2% average, over target">34.2% — over target</span>
+        </div>
+        <div class="chart-body" role="img" aria-label="Bar chart: labour percentage by hour. Hours 12 to 17 are over the 30% target.">
+          <div style="padding:8px 4px 0">
+            <svg width="100%" viewBox="0 0 220 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- target line -->
+  <line x1="0" y1="16.0" x2="220" y2="16.0" stroke="#CD142F" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+  <!-- bars and labels -->
+  <rect x="1.0" y="18.0" width="18.0" height="30" rx="2" fill="#00B69F"/>
+<text x="10.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">9</text>
+<rect x="21.0" y="15.0" width="18.0" height="33" rx="2" fill="#D81632"/>
+<text x="30.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">10</text>
+<rect x="41.0" y="17.0" width="18.0" height="31" rx="2" fill="#00B69F"/>
+<text x="50.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">11</text>
+<rect x="61.0" y="7.0" width="18.0" height="41" rx="2" fill="#D81632"/>
+<text x="70.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">12</text>
+<rect x="81.0" y="4.0" width="18.0" height="44" rx="2" fill="#D81632"/>
+<text x="90.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">13</text>
+<rect x="101.0" y="10.0" width="18.0" height="38" rx="2" fill="#D81632"/>
+<text x="110.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">14</text>
+<rect x="121.0" y="14.0" width="18.0" height="34" rx="2" fill="#D81632"/>
+<text x="130.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">15</text>
+<rect x="141.0" y="11.0" width="18.0" height="37" rx="2" fill="#D81632"/>
+<text x="150.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">16</text>
+<rect x="161.0" y="7.0" width="18.0" height="41" rx="2" fill="#D81632"/>
+<text x="170.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">17</text>
+<rect x="181.0" y="14.0" width="18.0" height="34" rx="2" fill="#E8ECF0"/>
+<text x="190.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">18</text>
+<rect x="201.0" y="14.0" width="18.0" height="34" rx="2" fill="#E8ECF0"/>
+<text x="210.0" y="59" text-anchor="middle" font-size="8" fill="#647282" font-family="Roboto,sans-serif">19</text>
+
+</svg>
+          </div>
+          <div class="chart-legend" aria-hidden="true">
+            <div class="legend-item"><div class="legend-dot" style="background:#00B69F"></div>Under 30%</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#D81632"></div>Over 30%</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E8ECF0"></div>Forecast</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team on Shift -->
+      <div class="rp-card team-card" role="region" aria-label="Team on shift status">
+        <div class="card-hdr">
+          <span class="card-title">Team on Shift</span>
+          <span class="card-badge cb-over" role="status" aria-label="1 staff member missing">1 missing</span>
+        </div>
+        <div class="team-summary" role="group" aria-label="Shift attendance summary">
+          <div class="team-stat">
+            <span class="ts-num ts-clocked" aria-label="8 clocked in">8</span>
+            <span class="ts-lbl">Clocked in</span>
+          </div>
+          <div class="team-stat">
+            <span class="ts-num ts-late" aria-label="2 late">2</span>
+            <span class="ts-lbl">Late</span>
+          </div>
+          <div class="team-stat">
+            <span class="ts-num ts-missing" aria-label="1 missing">1</span>
+            <span class="ts-lbl">Missing</span>
+          </div>
+        </div>
+
+      </div>
+
+
+    </aside>
+  </div>
+
+  <!-- PAGE: ACTIONS -->
+  <div id="page-actions" class="page-view" style="display:none">
+    <div style="display:flex;height:100%;overflow:hidden">
+      <div style="width:280px;background:var(--cn);overflow-y:auto;flex-shrink:0;padding:16px 0">
+        <div style="padding:0 14px 12px">
+          <div style="display:flex;gap:16;margin-bottom:10"><div><div style="font-size:22px;font-weight:800;color:#fff" id="act-open-count">6</div><div style="font-size:10px;color:var(--tds)">Open</div></div><div><div style="font-size:22px;font-weight:800;color:var(--ct)" id="act-res-count">0</div><div style="font-size:10px;color:var(--tds)">Resolved</div></div></div>
+        </div>
+        <div style="padding:0 14px 8px;font-size:9px;font-weight:700;color:var(--tds);letter-spacing:.1em;text-transform:uppercase">OPEN ACTIONS</div>
+        <div id="act-list"></div>
+      </div>
+      <div style="flex:1;background:var(--bgc);overflow-y:auto;padding:24px 28px" id="act-detail"></div>
+      <div id="act-filter" style="width:220px;background:var(--bg);border-left:1px solid var(--bd);overflow-y:auto;padding:18px 14px;flex-shrink:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16"><div style="display:flex;align-items:center;gap:5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ct)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span style="font-size:13px;font-weight:700;color:var(--tp)">Filter</span></div><button onclick="document.getElementById('act-filter').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--tm);font-size:16px">✕</button></div>
+        <div style="margin-bottom:12"><div style="font-size:10px;font-weight:600;color:var(--tp);margin-bottom:4">Search</div><input placeholder="Search..." style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--bd);font-size:10px;outline:none;font-family:var(--ff)"/></div>
+        <div style="margin-bottom:12"><div style="font-size:10px;font-weight:600;color:var(--tp);margin-bottom:4">Category</div><select style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--bd);font-size:10px;color:var(--ts);background:#fff;font-family:var(--ff)"><option>All Categories</option><option>Compliance</option><option>Workforce</option><option>Inventory</option><option>HR</option></select></div>
+        <div style="margin-bottom:12"><div style="font-size:10px;font-weight:600;color:var(--tp);margin-bottom:4">Priority Level</div><label style="display:flex;align-items:center;gap:6;margin-bottom:6;cursor:pointer;font-size:10px;color:var(--ts)"><input type="checkbox" checked style="accent-color:var(--ct)"> <span style="flex:1">High</span><span style="font-size:9px;font-weight:600;color:var(--cr)">Urgent</span></label><label style="display:flex;align-items:center;gap:6;margin-bottom:6;cursor:pointer;font-size:10px;color:var(--ts)"><input type="checkbox" checked style="accent-color:var(--ct)"> <span style="flex:1">Medium</span><span style="font-size:9px;font-weight:600;color:var(--co)">Standard</span></label><label style="display:flex;align-items:center;gap:6;margin-bottom:6;cursor:pointer;font-size:10px;color:var(--ts)"><input type="checkbox" checked style="accent-color:var(--ct)"> <span style="flex:1">Low</span><span style="font-size:9px;font-weight:600;color:var(--ct)">Monitor</span></label></div>
+        <button style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--ct);background:#fff;color:var(--tt);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--ff)">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: OPERATIONS -->
+  <div id="page-operations" class="page-view" style="display:none">
+    <div style="display:flex;height:100%;overflow:hidden">
+      <div style="width:280px;background:var(--cn);overflow-y:auto;flex-shrink:0;padding:16px 0">
+        <div style="padding:0 14px 12px;font-size:9px;font-weight:700;color:var(--tds);letter-spacing:.08em">OPERATIONAL AREAS</div>
+        <div id="ops-nav"></div>
+      </div>
+      <div style="flex:1;background:var(--bgc);overflow-y:auto;padding:24px 28px" id="ops-detail"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: REAL-TIME DATA -->
+  <div id="page-realtime" class="page-view" style="display:none">
+    <div style="display:flex;height:100%;overflow:hidden">
+      <div style="width:280px;background:var(--cn);overflow-y:auto;flex-shrink:0;padding:16px 0">
+        <div style="padding:0 14px 12px;font-size:9px;font-weight:700;color:var(--tds);letter-spacing:.08em">LIVE DATA</div>
+        <div style="margin:0 10px 10px;background:rgba(0,182,159,.15);border-radius:8px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--ct)">KEY INSIGHT</div><div style="font-size:11px;font-weight:600;color:#fff;margin-top:3">Labour demand exceeds staffing 11:30–14:30</div></div>
+        <div id="rt-nav"></div>
+      </div>
+      <div style="flex:1;background:var(--bgc);overflow-y:auto;padding:24px 28px" id="rt-detail"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: WORKFLOWS (popup menu) -->
+  <div id="page-workflows" class="page-view" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--bg)">
+      <div style="background:var(--bgc);border-radius:16px;padding:28px;width:380px;box-shadow:var(--she)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18"><div><div style="font-size:18px;font-weight:700;color:var(--tp)">Core Workflows</div><div style="font-size:13px;color:var(--ts)">Select workflows to access</div></div><button onclick="switchPage('today')" style="background:none;border:none;cursor:pointer;color:var(--tm);font-size:18px">✕</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="wf-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="navbar" aria-label="App navigation">
+    <button class="ni a" onclick="setNav(this)" aria-current="page" aria-label="Today">
+      <span class="ni-ind" aria-hidden="true"></span>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="ni-lbl">Today</span>
+    </button>
+    <button class="ni" onclick="setNav(this)" aria-label="Actions, 6 items">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span class="ni-lbl">Actions</span>
+      <span class="ni-badge" id="nav-badge" aria-label="6 actions">6</span>
+    </button>
+    <button class="ni" onclick="setNav(this)" aria-label="Operations">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <span class="ni-lbl">Operations</span>
+    </button>
+    <button class="ni" onclick="setNav(this)" aria-label="Real Time Data">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="ni-lbl">Real Time</span>
+    </button>
+    <button class="ni" onclick="setNav(this)" aria-label="Core Workflows">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="ni-lbl">Workflows</span>
+    </button>
+  </nav>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div class="toast-dot" aria-hidden="true"></div>
+    <span id="toast-msg">Action confirmed</span>
+  </div>
+
+  </div><!-- .device -->
+  </div><!-- .ipad-bezel -->
+</div><!-- .ipad-frame -->
+
+<script>
+// ── Data ────────────────────────────────────────────────────────────
+const ITEMS = {
+  1: {
+    blockerLabel:'Service Blocker', blockerCls:'bl-act', counter:'1 of 6',
+    heading:'Update allergen information before service',
+    deadlineLabel:'Before next cover', deadlineCls:'dl-now',
+    iq:'Food safety law requires allergen info to be current before service — 3 menu items are out of date.',
+    risks:[
+      {icon:'!',label:'Legal risk — cannot serve 4 menu items',cls:'risk-red'},
+      {icon:'£',label:'£340 revenue at risk this service',cls:'risk-orange'},
+    ],
+    affected:[['Classic Beef Burger','Mustard added to house sauce'],['Chicken Caesar Salad','Anchovy added — fish allergen'],['Fish & Chips','Gluten-free batter now available']],
+    who:'You, or delegate to<br><b>Kitchen Supervisor</b><br>(Maya T. — on shift now)',
+    cons:[
+      ['Right Now','Front-of-house <b>cannot confirm allergen-safe options</b> to customers'],
+      ['If Not Resolved','Any adverse reaction at 12:00 peak becomes a <b>mandatory FSA report</b>'],
+      ['If Pattern Repeats','2 failures in 30 days triggers a <b>scheduled hygiene inspection</b>'],
+    ],
+    cta:'Confirm allergen changes for service',
+    delegate:'Delegate to kitchen manager',
+    toggleLabel:'3 menu items need allergen updates — see detail',
+    toastMsg:'Allergen changes confirmed ✓',
+  },
+  2: {
+    blockerLabel:'Service Blocker', blockerCls:'bl-act', counter:'2 of 6',
+    heading:'Increase labour coverage for peak service',
+    deadlineLabel:'Action required by 12:00', deadlineCls:'dl-now',
+    iq:'Staffing is 22% below forecast for peak — without action, service will be understaffed at 12:00.',
+    risks:[
+      {icon:'!',label:'Service cannot open at full capacity',cls:'risk-red'},
+      {icon:'£',label:'Estimated £520 revenue risk at peak',cls:'risk-orange'},
+    ],
+    affected:[['Floor Cover','3 staff scheduled, 0 clocked in'],['Bar Station','1 of 2 staff present'],['Kitchen Support','Running at minimum staffing']],
+    who:'You, or call in<br><b>On-Call Staff</b><br>(2 available today)',
+    cons:[
+      ['Right Now','<b>Service cannot open</b> at full capacity for peak cover'],
+      ['If Not Resolved','Average wait times exceed <b>25 minutes at peak</b>'],
+      ['If Pattern Repeats','Repeated understaffing triggers a <b>workforce review</b>'],
+    ],
+    cta:'Adjust labour coverage now',
+    delegate:'Call in on-call staff',
+    toggleLabel:'3 roles understaffed at peak — see coverage detail',
+    toastMsg:'Labour coverage adjusted ✓',
+  },
+  3: {
+    blockerLabel:'Service Blocker', blockerCls:'bl-act', counter:'3 of 6',
+    heading:'Authorise this week\'s schedule now',
+    deadlineLabel:'Due today', deadlineCls:'dl-today',
+    iq:'The schedule for next week has not been authorised — 14 staff cannot see their shifts.',
+    risks:[
+      {icon:'!',label:'14 staff cannot see next week\'s shifts',cls:'risk-red'},
+      {icon:'!',label:'Payroll processing delayed 48 hours',cls:'risk-orange'},
+    ],
+    affected:[['Week commencing','21 April'],['Staff affected','14 team members'],['Planning impact','Rota publication delayed']],
+    who:'You<br><b>(Manager authorisation required)</b>',
+    cons:[
+      ['Right Now','Staff <b>cannot see next week\'s shifts</b>'],
+      ['If Not Resolved','Payroll processing <b>delayed by 48 hours</b>'],
+      ['If Pattern Repeats','Compliance flag raised in <b>next audit</b>'],
+    ],
+    cta:'Authorise weekly schedule',
+    delegate:'Review before authorising',
+    toggleLabel:'14 staff cannot see their shifts — see schedule detail',
+    toastMsg:'Schedule authorised ✓',
+  },
+  4: {
+    blockerLabel:'Compliance Alert', blockerCls:'bl-comp', counter:'4 of 6',
+    heading:'Resolve right to work gaps — 3 staff',
+    deadlineLabel:'End of day', deadlineCls:'dl-today',
+    iq:'3 staff are missing right-to-work documents — employing them without this is a legal offence.',
+    risks:[
+      {icon:'!',label:'3 staff cannot legally work until resolved',cls:'risk-red'},
+      {icon:'!',label:'Potential £20,000 fine per illegal worker',cls:'risk-red'},
+    ],
+    affected:[['Jamie T.','Documentation expired 14 Apr'],['Priya S.','Renewal pending — no upload'],['Marcus W.','New starter — docs not received']],
+    who:'HR Team<br><b>or delegate to</b><br>Shift Supervisor',
+    cons:[
+      ['Right Now','<b>3 staff cannot legally work</b> until resolved'],
+      ['If Not Resolved','Potential <b>£20,000 fine</b> per illegal worker'],
+      ['If Pattern Repeats','Sponsor licence <b>suspension risk</b>'],
+    ],
+    cta:'Upload documentation now',
+    delegate:'Notify HR team',
+    toggleLabel:'3 staff missing documents — see who and what is needed',
+    toastMsg:'HR team notified ✓',
+  },
+  5: {
+    blockerLabel:'Workflow Overdue', blockerCls:'bl-wf', counter:'5 of 6',
+    heading:'Approve T&A before payroll deadline',
+    deadlineLabel:'Overdue — act now', deadlineCls:'dl-now',
+    iq:'T&A approval is 2 days overdue — payroll cannot run until this is signed off.',
+    risks:[
+      {icon:'!',label:'Payroll run on hold for 22 staff',cls:'risk-red'},
+      {icon:'!',label:'Late payment may breach employment law',cls:'risk-orange'},
+    ],
+    affected:[['Pay period','7–13 April'],['Staff affected','22 team members'],['Payroll deadline','Today at 17:00']],
+    who:'You<br><b>(Manager approval required)</b>',
+    cons:[
+      ['Right Now','Payroll run <b>on hold</b>'],
+      ['If Not Resolved','Staff <b>paid late</b> — potential legal breach'],
+      ['If Pattern Repeats','Escalation to <b>Finance Director</b>'],
+    ],
+    cta:'Approve T&A now',
+    delegate:'Query a timesheet',
+    toggleLabel:'22 staff affected by payroll hold — see T&A detail',
+    toastMsg:'T&A approved ✓',
+  },
+  6: {
+    blockerLabel:'Inventory Workflow', blockerCls:'bl-wf', counter:'6 of 6',
+    heading:'Submit stock count variance report',
+    deadlineLabel:'By close of business', deadlineCls:'dl-today',
+    iq:'A £340 stock variance is unresolved — it will carry forward and distort next period reporting.',
+    risks:[
+      {icon:'£',label:'£340 variance unaccounted in system',cls:'risk-orange'},
+      {icon:'!',label:'Inventory reporting inaccurate next period',cls:'risk-red'},
+    ],
+    affected:[['Variance amount','£340 unaccounted'],['Categories','Spirits (£210), Dry goods (£130)'],['Count period','w/e 13 April']],
+    who:'You or<br><b>Inventory Manager</b><br>(Clare B. — on shift)',
+    cons:[
+      ['Right Now','Variance <b>unresolved in system</b>'],
+      ['If Not Resolved','Inventory reporting <b>inaccurate next period</b>'],
+      ['If Pattern Repeats','Full <b>stock audit triggered</b>'],
+    ],
+    cta:'Submit variance report',
+    delegate:'Assign to inventory manager',
+    toggleLabel:'£340 variance across 2 categories — see breakdown',
+    toastMsg:'Variance report submitted ✓',
+  },
+};
+
+// ── State ────────────────────────────────────────────────────────────
+let activeId = 1;
+let doneIds = new Set();
+let navBadge = 6;
+
+// ── Render detail ────────────────────────────────────────────────────
+function renderDetail(id) {
+  const d = ITEMS[id];
+  const isDone = doneIds.has(id);
+  const el = document.getElementById('detail-inner');
+
+  if (isDone) {
+    const next = findNext(id);
+    el.innerHTML = `
+      <div class="done-overlay">
+        <div class="done-check" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#007F6F" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="done-title">Action Complete</div>
+        <div class="done-sub">${d.heading.substring(0,60)}... has been resolved and logged.</div>
+        ${next ? `<button class="btn-next" onclick="select(${next})">Next: Item ${next} of 6 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>` : '<div class="done-sub" style="color:#007F6F;font-weight:500">🎉 All actions complete for today</div>'}
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="detail-content">
+
+      <div class="d-meta">
+        <span class="blocker ${d.blockerCls}">${d.blockerLabel}</span>
+        <div class="d-nav" aria-label="Navigate actions">
+          <button class="d-nav-btn" onclick="navTo(${id}, -1)" aria-label="Previous action" ${id === 1 ? 'disabled' : ''}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="d-counter" aria-label="${d.counter}">${d.counter}</span>
+          <button class="d-nav-btn" onclick="navTo(${id}, 1)" aria-label="Next action" ${id === 6 ? 'disabled' : ''}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <h1 class="d-heading" tabindex="-1" id="detail-heading">${d.heading}</h1>
+
+      <span class="deadline ${d.deadlineCls}">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ${d.deadlineLabel}
+      </span>
+
+      <div class="iq" role="note" aria-label="iQ Reasoning">
+        <div class="iq-hdr">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#007F6F" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="iq-lbl">iQ Reasoning</span>
+        </div>
+        <div class="iq-body">${d.iq}</div>
+      </div>
+
+      <button class="expand-toggle" id="expand-btn-${id}" onclick="toggleDetails(${id})" aria-expanded="false" aria-controls="collapsible-${id}">
+        <span>${d.toggleLabel}</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+      <div class="ctas">
+        <button class="btn-p" onclick="markDone(${id})" aria-label="${d.cta}">
+          ${d.cta}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="btn-s" onclick="delegate(${id})" aria-label="${d.delegate}">
+          ${d.delegate}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+
+      <div class="collapsible" id="collapsible-${id}" aria-hidden="true">
+        ${d.risks.length ? `<div class="risk-row">${d.risks.map(r=>`<span class="risk-tag ${r.cls}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${r.label}</span>`).join('')}</div>` : ''}
+        <div class="d-grid">
+          <div>
+            <div class="d-col-lbl">Affected Items</div>
+            ${d.affected.map(([n,det])=>`<div class="d-item"><span class="d-iname">${n}</span><span class="d-idetail">${det}</span></div>`).join('')}
+          </div>
+          <div>
+            <div class="d-col-lbl">Who Can Act</div>
+            <div class="d-item"><span class="d-idetail">${d.who}</span></div>
+          </div>
+        </div>
+        <div class="cons" role="region" aria-label="Consequence analysis">
+          ${d.cons.map(([l,t])=>`<div><div class="cons-lbl">${l}</div><div class="cons-txt">${t}</div></div>`).join('')}
+        </div>
+      </div>
+
+    </div>`;
+
+  document.getElementById('detail').scrollTop = 0;
+  // Focus heading for screen readers
+  const h = document.getElementById('detail-heading');
+  if (h) h.focus();
+}
+
+// ── Select item ──────────────────────────────────────────────────────
+function select(id) {
+  activeId = id;
+  // Auto-expand workflow section if selecting a workflow item
+  if (id >= 5) {
+    const sec = document.getElementById('wf-sec');
+    const items = document.getElementById('wf-items');
+    if (sec && sec.classList.contains('collapsed')) {
+      sec.classList.remove('collapsed');
+      items.classList.remove('collapsed');
+      sec.setAttribute('aria-expanded', 'true');
+    }
+  }
+  // Update sidebar
+  document.querySelectorAll('.pli').forEach(b => {
+    b.classList.remove('active');
+    b.removeAttribute('aria-current');
+    b.querySelector('.active-bar')?.remove();
+    const num = b.querySelector('.pli-num');
+    if (!num.classList.contains('urgent') && !num.classList.contains('done-num')) {
+      num.classList.remove('active');
+    }
+  });
+  const el = document.getElementById('pli-' + id);
+  if (el) {
+    el.classList.add('active');
+    el.setAttribute('aria-current','true');
+    const bar = document.createElement('div');
+    bar.className = 'active-bar'; bar.setAttribute('aria-hidden','true');
+    el.insertBefore(bar, el.firstChild);
+    const num = document.getElementById('num-' + id);
+    if (num && !num.classList.contains('urgent') && !num.classList.contains('done-num')) {
+      num.classList.add('active');
+    }
+  }
+  renderDetail(id);
+}
+
+// ── Mark done ────────────────────────────────────────────────────────
+function markDone(id) {
+  doneIds.add(id);
+  const pli = document.getElementById('pli-' + id);
+  const num = document.getElementById('num-' + id);
+  if (pli) {
+    pli.classList.add('done');
+    pli.setAttribute('aria-label', pli.getAttribute('aria-label') + ' — Completed');
+  }
+  if (num) {
+    num.className = 'pli-num done-num';
+    num.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+  // Update counters
+  const count = doneIds.size;
+  document.getElementById('done-label').textContent = `${count} / 6 done`;
+  navBadge = Math.max(0, 6 - count);
+  const badge = document.getElementById('nav-badge');
+  badge.textContent = navBadge;
+  badge.setAttribute('aria-label', navBadge + ' actions remaining');
+  if (navBadge === 0) badge.style.display = 'none';
+  // Update progress bar
+  const pct = Math.round((count / 6) * 100);
+  const remaining = 6 - count;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '% complete';
+  document.getElementById('progress-remain').textContent = remaining + ' remaining';
+  const wrap = document.getElementById('progress-bar-wrap');
+  wrap.setAttribute('aria-valuenow', count);
+  // All done
+  if (count === 6) {
+    document.getElementById('progress-remain').textContent = 'All done ✓';
+    document.getElementById('progress-remain').style.color = '#007F6F';
+    document.getElementById('progress-remain').style.fontWeight = '700';
+    setTimeout(() => showAllDoneScreen(), 600);
+  }
+
+  // Show toast
+  showToast(ITEMS[id].toastMsg);
+  // Render done state
+  renderDetail(id);
+}
+
+// ── Delegate ─────────────────────────────────────────────────────────
+function delegate(id) {
+  showToast('Delegated to team member →');
+  setTimeout(() => markDone(id), 800);
+}
+
+// ── Find next undone ─────────────────────────────────────────────────
+function findNext(fromId) {
+  for (let i = fromId + 1; i <= 6; i++) {
+    if (!doneIds.has(i)) return i;
+  }
+  return null;
+}
+
+// ── Toast ────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────
+function setNav(el) {
+  document.querySelectorAll('.ni').forEach(b => {
+    b.classList.remove('a');
+    b.removeAttribute('aria-current');
+    b.querySelector('.ni-ind')?.remove();
+  });
+  el.classList.add('a');
+  el.setAttribute('aria-current','page');
+  const ind = document.createElement('span');
+  ind.className = 'ni-ind'; ind.setAttribute('aria-hidden','true');
+  el.insertBefore(ind, el.firstChild);
+  const label = el.getAttribute('aria-label')?.split(',')[0]?.trim() || '';
+  const pageMap = {'Today':'today','Actions':'actions','Operations':'operations','Real Time Data':'realtime','Core Workflows':'workflows'};
+  switchPage(pageMap[label] || 'today');
+}
+
+function switchPage(page) {
+  document.querySelector('.main').style.display = page === 'today' ? '' : 'none';
+  document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+  const el = document.getElementById('page-' + page);
+  if (el) { el.style.display = ''; }
+  const screenLabel = document.querySelector('.tscreen');
+  const labels = {today:"Today's Actions",actions:"Action Centre",operations:"Operations",realtime:"Real-Time Data",workflows:"Core Workflows"};
+  if (screenLabel) screenLabel.textContent = labels[page] || page;
+  if (page === 'actions') renderActionsPage();
+  if (page === 'operations') renderOpsPage();
+  if (page === 'realtime') renderRTPage();
+  if (page === 'workflows') renderWFPage();
+}
+
+// ── Actions Page ──────────────────────────────────────────────
+let actSel = 1;
+function renderActionsPage() {
+  const list = document.getElementById('act-list');
+  const detail = document.getElementById('act-detail');
+  list.innerHTML = '';
+  Object.entries(ITEMS).forEach(([id, it]) => {
+    const num = parseInt(id);
+    const col = it.urgency === 'now' ? 'var(--cr)' : 'var(--co)';
+    const urgLabel = it.urgency === 'now' ? 'URGENT' : 'TODAY';
+    list.innerHTML += `<div class="act-row ${num===actSel?'active':''}" onclick="actSelect(${num})">
+      <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${col};flex-shrink:0">${num}</div>
+      <div style="flex:1"><div style="font-size:9px;font-weight:700;color:${col};text-transform:uppercase">${urgLabel}</div><div style="font-size:12px;font-weight:600;color:#fff;line-height:1.3;margin-top:2px">${it.title}</div></div>
+    </div>`;
+  });
+  renderActDetail(actSel);
+}
+function actSelect(id) { actSel = id; renderActionsPage(); }
+function renderActDetail(id) {
+  const it = ITEMS[id]; if (!it) return;
+  const detail = document.getElementById('act-detail');
+  const col = it.urgency === 'now' ? 'var(--cr)' : 'var(--co)';
+  const urgLabel = it.urgency === 'now' ? 'URGENT · COMPLIANCE RISK' : 'TODAY · ACTION REQUIRED';
+  detail.innerHTML = `
+    <div style="display:inline-flex;padding:4px 10px;border-radius:5px;background:${it.urgency==='now'?'var(--cr-t)':'var(--co-t)'};margin-bottom:12px"><span style="font-size:10px;font-weight:700;color:${col}">● ${urgLabel}</span></div>
+    <h2 style="font-size:20px;font-weight:700;color:var(--tp);margin:0 0 8px;line-height:1.3">${it.title}</h2>
+    <p style="font-size:13px;color:var(--ts);line-height:1.6;margin:0 0 16px">${it.consequence || it.title}</p>
+    ${it.pills ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">${it.pills.map(p => `<div style="padding:6px 12px;border-radius:6px;border:1px solid ${p.border || 'var(--bd)'};background:${p.bg || 'var(--bg)'};font-size:11px;color:var(--tp)">${p.icon||''} ${p.label}</div>`).join('')}</div>` : ''}
+    <div style="display:flex;gap:8px">
+      <button style="padding:12px 22px;border-radius:10px;border:none;background:var(--cn);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ff)">Take Action →</button>
+      <button style="padding:12px 22px;border-radius:10px;border:1px solid var(--bd);background:#fff;color:var(--ts);font-size:12px;cursor:pointer;font-family:var(--ff)">Delegate</button>
+    </div>`;
+}
+
+// ── Operations Page ──────────────────────────────────────────
+const OPS_DATA = {
+  sched: {title:'Scheduling',sub:'52h uncovered · 95.3%',color:'var(--cn)',icon:'📅',
+    content:`<div class="sum-card"><div class="sum-grid"><div><div class="sum-lbl" style="color:var(--cr)">WHAT'S HAPPENING</div><div class="sum-val">52 hours uncovered next week</div><div class="sum-desc">Thu–Sat evenings most affected</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHY IT MATTERS</div><div class="sum-desc">Blocks Week 2 publication · Service delays at peak</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHAT NEEDS DECISION</div><div class="sum-desc">Fill coverage gaps to enable rota publication</div></div><div><div class="sum-lbl" style="color:var(--tt)">EXPECTED OUTCOME</div><div class="sum-desc">✓ Full coverage · Next week ready to publish</div></div></div></div>
+    <div class="ai-sug"><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--tt)">⚡ AI suggests filling Thu–Sat with part-timers</span></div><div style="font-size:10px;color:var(--ts);margin-bottom:6px">5 members match · One update resolves coverage</div><button style="padding:7px 14px;border-radius:6px;border:none;background:var(--co);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--ff)">Apply AI suggestion</button></div>
+    <div class="kpi-grid"><div class="kpi-card"><div class="kpi-val" style="color:var(--cr)">52h</div><div class="kpi-lbl">Uncovered</div></div><div class="kpi-card"><div class="kpi-val" style="color:var(--tt)">95.3%</div><div class="kpi-lbl">Coverage</div></div><div class="kpi-card"><div class="kpi-val" style="color:var(--tp)">10</div><div class="kpi-lbl">Open Shifts</div></div><div class="kpi-card"><div class="kpi-val" style="color:var(--tp)">8</div><div class="kpi-lbl">Availability</div></div></div>
+    <div class="sec-actions"><button class="sec-btn">📅 Create rota</button><button class="sec-btn">✏️ Edit shifts</button><button class="sec-btn">✅ Confirm T&A</button><button class="sec-btn">🔒 Close the Day</button></div>
+    <div class="de-title">DECISION EVIDENCE</div>
+    <div style="background:var(--cr-t);border-left:3px solid var(--cr);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:10px"><span style="font-size:11px;font-weight:600;color:var(--cr)">⚠ Risk of service delays if no action taken today</span></div>`},
+  forecast: {title:'Forecast',sub:'82% confidence',color:'var(--ct)',icon:'📊',
+    content:`<div class="sum-card"><div class="sum-grid"><div><div class="sum-lbl" style="color:var(--cr)">WHAT'S HAPPENING</div><div class="sum-val">Forecast requires approval</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHY IT MATTERS</div><div class="sum-desc">Labour planning locks to AI forecast at midnight</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHAT NEEDS DECISION</div><div class="sum-desc">Approve adjusted forecast or discard adjustments</div></div><div><div class="sum-lbl" style="color:var(--tt)">EXPECTED OUTCOME</div><div class="sum-desc">✓ Forecast approved · Labour planning proceeds</div></div></div></div>
+    <div style="border:1.5px solid var(--ct);border-radius:10px;padding:14px 16px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="padding:2px 8px;border-radius:4px;background:var(--co-t);font-size:9px;font-weight:700;color:var(--to)">DECISION REQUIRED</span><span style="font-size:10px;color:var(--tm)">CONFIDENCE: 82%</span></div><div style="font-size:15px;font-weight:700;color:var(--tp);margin-bottom:10px">Forecast requires approval</div><div style="display:flex;gap:6px"><button style="padding:9px 16px;border-radius:8px;border:none;background:var(--cn);color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--ff)">✓ Approve forecast</button><button style="padding:9px 16px;border-radius:8px;border:1px solid var(--bd);background:#fff;color:var(--ts);font-size:10px;cursor:pointer;font-family:var(--ff)">Discard</button></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div style="border:1px solid var(--bd);border-radius:8px;padding:12px 14px"><div style="font-size:10px;color:var(--tm)">AI Forecast</div><div style="font-size:17px;font-weight:800;color:var(--tp)">£91,816</div></div><div style="border:1.5px solid var(--ct);border-radius:8px;padding:12px 14px;background:rgba(0,182,159,.04)"><div style="font-size:10px;color:var(--tt)">Adjusted</div><div style="font-size:17px;font-weight:800;color:var(--tp)">£91,816</div></div><div style="border:1px solid var(--bd);border-radius:8px;padding:12px 14px"><div style="font-size:10px;color:var(--tm)">Actual</div><div style="font-size:17px;font-weight:800;color:var(--tp)">£81,809</div></div></div>`},
+  people: {title:'People',sub:'2 absences',color:'#7C3AED',icon:'👥',
+    content:`<div class="sum-card"><div class="sum-grid"><div><div class="sum-lbl" style="color:var(--cr)">WHAT'S HAPPENING</div><div class="sum-val">2 people issues impacting next week</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHY IT MATTERS</div><div class="sum-desc">Affects Fri–Sat coverage · Creates payroll risk</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHAT NEEDS DECISION</div><div class="sum-desc">Approve or resolve pending changes</div></div><div><div class="sum-lbl" style="color:var(--tt)">EXPECTED OUTCOME</div><div class="sum-desc">✓ Shifts covered · Compliance risk cleared</div></div></div></div>
+    <div class="ai-sug"><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--tt)">⚡ System highlights people-related risks</span></div><div style="font-size:10px;color:var(--ts);margin-bottom:6px">Absence impacts scheduled shifts</div><button style="padding:7px 14px;border-radius:6px;border:none;background:var(--cr);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--ff)">Review impacted shifts</button></div>
+    <div class="sec-actions"><button class="sec-btn">👁 View details</button><button class="sec-btn">✏️ Request change</button><button class="sec-btn">💷 Update pay</button><button class="sec-btn">📄 Documents</button><button class="sec-btn">💬 Add notes</button></div>
+    <div class="de-title">DECISION EVIDENCE</div>
+    <div style="background:#FFF8E1;border-radius:8px;padding:10px 14px;margin-bottom:6px"><div style="font-size:12px;font-weight:700;color:var(--tp)">Sarah Mitchell</div><div style="font-size:11px;color:var(--ts)">10-14 Feb · 1 Fri shift · Annual leave</div></div>
+    <div style="background:#FCE4EC;border-radius:8px;padding:10px 14px;margin-bottom:6px"><div style="font-size:12px;font-weight:700;color:var(--tp)">James Patterson</div><div style="font-size:11px;color:var(--ts)">3-5 Feb · 2 shifts · Sick leave</div></div>
+    <div style="background:#E3F2FD;border-radius:8px;padding:10px 14px;margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--tp)">Marcus Thompson</div><div style="font-size:11px;color:var(--ts)">£15.75→£16.50/hr · Pay increase</div></div>
+    <div style="background:rgba(0,182,159,.08);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--tt);font-weight:600">All compliance met for Downtown Restaurant</div>`},
+  inventory: {title:'Inventory',sub:'6 critical items',color:'var(--ct)',icon:'📦',
+    content:`<div class="sum-card"><div class="sum-grid"><div><div class="sum-lbl" style="color:var(--cr)">WHAT'S HAPPENING</div><div class="sum-val">6 critical items projected to stock out</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHY IT MATTERS</div><div class="sum-desc">Affects Fri–Sat dinner service</div></div><div><div class="sum-lbl" style="color:var(--tm)">WHAT NEEDS DECISION</div><div class="sum-desc">Resolve replenishment · Confirm substitutions</div></div><div><div class="sum-lbl" style="color:var(--tt)">EXPECTED OUTCOME</div><div class="sum-desc">✓ Stock secured for weekend</div></div></div></div>
+    <div class="ai-sug"><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--tt)">⚡ AI suggests reallocating stock across locations</span></div><div style="font-size:10px;color:var(--ts);margin-bottom:6px">3 nearby sites have surplus · 2 deliveries expeditable</div><button style="padding:7px 14px;border-radius:6px;border:none;background:var(--cr);color:#fff;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--ff)">Apply AI recommendation</button></div>
+    <div class="sec-actions"><button class="sec-btn">➕ Place order</button><button class="sec-btn">📦 Receive delivery</button><button class="sec-btn">✏️ Adjust counts</button><button class="sec-btn">📋 Stock count</button></div>
+    <div class="de-title">DECISION EVIDENCE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:#FFEBEE;border-radius:8px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--cr)">CRITICAL</div><div style="font-size:12px;font-weight:700;color:var(--cr)">Salmon · Ribeye</div></div><div style="background:#FFF8E1;border-radius:8px;padding:10px 12px"><div style="font-size:9px;font-weight:700;color:var(--to)">WARNING</div><div style="font-size:12px;font-weight:700;color:var(--to)">Red wine · Prosecco · Burrata</div></div></div>
+    <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px">Availability</span><span style="font-size:12px;font-weight:700">91%</span></div><div class="perf-bar"><div class="perf-fill" style="width:91%;background:var(--ct)"></div></div></div>
+    <div style="font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;margin-bottom:6px">SUPPLIERS</div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:12px;font-weight:600;color:var(--tp)">Fresh Direct</span><span style="font-size:10px;font-weight:600;color:var(--cr)">2 delays</span></div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--bd)"><span style="font-size:12px;font-weight:600;color:var(--tp)">Wine Merchants</span><span style="font-size:10px;font-weight:600;color:var(--tt)">On time</span></div>`}
+};
+let opsSel = 'sched';
+function renderOpsPage() {
+  const nav = document.getElementById('ops-nav');
+  nav.innerHTML = '';
+  Object.entries(OPS_DATA).forEach(([k, v]) => {
+    nav.innerHTML += `<div class="ops-item ${k===opsSel?'active':''}" onclick="opsSelect('${k}')">
+      <div class="ops-icon" style="background:${v.color==='var(--cn)'?'rgba(0,39,71,.3)':'rgba(0,182,159,.15)'}">${v.icon}</div>
+      <div><div class="ops-label">${v.title}</div><div class="ops-sub">${v.sub}</div></div>
+    </div>`;
+  });
+  const d = OPS_DATA[opsSel];
+  document.getElementById('ops-detail').innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><span style="font-size:20px">${d.icon}</span><h2 style="font-size:20px;font-weight:700;color:var(--tp);margin:0">${d.title}</h2></div>${d.content}`;
+}
+function opsSelect(k) { opsSel = k; renderOpsPage(); }
+
+// ── Real-Time Data Page ──────────────────────────────────────
+const RT_DATA = {
+  overview: {title:'Overview',content:'overview'},
+  revenue: {title:'Revenue Trend',content:'revenue'},
+  staff: {title:'Staff Status',content:'staff'},
+  weekly: {title:'Weekly Performance',content:'weekly'},
+  efficiency: {title:'Department Efficiency',content:'efficiency'}
+};
+let rtSel = 'overview';
+function renderRTPage() {
+  const nav = document.getElementById('rt-nav');
+  nav.innerHTML = '';
+  Object.entries(RT_DATA).forEach(([k, v]) => {
+    nav.innerHTML += `<div class="rt-item ${k===rtSel?'active':''}" onclick="rtSelect('${k}')"><span style="font-size:12px;font-weight:${k===rtSel?'600':'400'};color:${k===rtSel?'var(--ct)':'var(--tds)'}">${v.title}</span></div>`;
+  });
+  const det = document.getElementById('rt-detail');
+  if (rtSel === 'overview') {
+    det.innerHTML = `<h2 style="font-size:20px;font-weight:700;color:var(--tp);margin-bottom:14px">Overview</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:14px 18px"><div style="font-size:11px;color:var(--ts);margin-bottom:3px">Revenue</div><div style="font-size:24px;font-weight:800;color:var(--tp)">$12,847</div><div style="font-size:11px;font-weight:700;color:var(--tt)">↑ +12.5%</div></div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:14px 18px"><div style="font-size:11px;color:var(--ts);margin-bottom:3px">Orders</div><div style="font-size:24px;font-weight:800;color:var(--tp)">156</div><div style="font-size:11px;font-weight:700;color:var(--tt)">↑ +8.2%</div></div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:14px 18px"><div style="font-size:11px;color:var(--ts);margin-bottom:3px">Staff Hours</div><div style="font-size:24px;font-weight:800;color:var(--tp)">87.5h</div><div style="font-size:11px;font-weight:700;color:var(--cr)">↓ -2.1%</div></div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:14px 18px"><div style="font-size:11px;color:var(--ts);margin-bottom:3px">Avg Time</div><div style="font-size:24px;font-weight:800;color:var(--tp)">14min</div><div style="font-size:11px;font-weight:700;color:var(--tt)">↑ -5.3%</div></div>
+      </div>`;
+  } else if (rtSel === 'staff') {
+    det.innerHTML = `<h2 style="font-size:20px;font-weight:700;color:var(--tp);margin-bottom:14px">Staff Status</h2><div style="font-size:13px;color:var(--ts);margin-bottom:16px">25/26 present</div>
+      ${[{n:'Kitchen',p:7,t:8,ok:false},{n:'FOH',p:12,t:12,ok:true},{n:'Bar',p:4,t:4,ok:true},{n:'Management',p:2,t:2,ok:true}].map(d => `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--tp)">${d.n}</span><span style="font-size:12px;font-weight:600;color:${d.ok?'var(--tt)':'var(--co)'}">${d.p}/${d.t}</span></div><div class="perf-bar"><div class="perf-fill" style="width:${(d.p/d.t)*100}%;background:${d.ok?'var(--ct)':'var(--co)'}"></div></div></div>`).join('')}`;
+  } else if (rtSel === 'efficiency') {
+    det.innerHTML = `<h2 style="font-size:20px;font-weight:700;color:var(--tp);margin-bottom:14px">Department Efficiency</h2>
+      ${[{n:'Kitchen',p:92},{n:'FOH',p:88},{n:'Bar',p:95},{n:'Management',p:90}].map(d => `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--tp)">${d.n}</span><span style="font-size:12px;font-weight:700;color:var(--tt)">${d.p}%</span></div><div class="perf-bar"><div class="perf-fill" style="width:${d.p}%;background:var(--ct)"></div></div></div>`).join('')}`;
+  } else if (rtSel === 'revenue') {
+    det.innerHTML = `<h2 style="font-size:20px;font-weight:700;color:var(--tp);margin-bottom:14px">Revenue Trend Today</h2>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px 0;border-bottom:1px solid var(--bd)">
+        ${[{h:'09',v:850},{h:'10',v:1200},{h:'11',v:1800},{h:'12',v:2300},{h:'13',v:2700},{h:'14',v:2900},{h:'15',v:3100},{h:'16',v:3800}].map(d => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:${(d.v/4000)*160}px;background:var(--ct);border-radius:3px 3px 0 0;min-height:4px"></div><span style="font-size:9px;color:var(--tm)">${d.h}</span></div>`).join('')}
+      </div><div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:right">Hour of day · Revenue in £</div>`;
+  } else if (rtSel === 'weekly') {
+    det.innerHTML = `<h2 style="font-size:20px;font-weight:700;color:var(--tp);margin-bottom:14px">Weekly Performance</h2>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:180px;padding:10px 0;border-bottom:1px solid var(--bd)">
+        ${[{d:'Mon',r:8200},{d:'Tue',r:9100},{d:'Wed',r:9400},{d:'Thu',r:9800},{d:'Fri',r:11500},{d:'Sat',r:14200},{d:'Sun',r:12200}].map(d => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:${(d.r/15000)*160}px;background:var(--ct);border-radius:3px 3px 0 0"></div><span style="font-size:9px;color:var(--tm)">${d.d}</span></div>`).join('')}
+      </div>`;
+  }
+}
+function rtSelect(k) { rtSel = k; renderRTPage(); }
+
+// ── Workflows Page ──────────────────────────────────────────
+function renderWFPage() {
+  const grid = document.getElementById('wf-grid');
+  grid.innerHTML = [
+    {icon:'👥',color:'#7C3AED',label:'HR & Payroll'},
+    {icon:'📅',color:'var(--co)',label:'Scheduling'},
+    {icon:'📦',color:'var(--ct)',label:'Inventory'},
+    {icon:'📊',color:'#1E88E5',label:'Analytics'},
+    {icon:'⏱',color:'var(--tm)',label:'eClock'}
+  ].map(w => `<div style="background:var(--bg);border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;border:1px solid var(--bd)"><div style="font-size:22px;margin-bottom:6px">${w.icon}</div><div style="font-size:11px;font-weight:600;color:var(--tp)">${w.label}</div></div>`).join('');
+}
+
+
+
+// ── Toggle details ──────────────────────────────────────────────────
+function toggleDetails(id) {
+  const col = document.getElementById('collapsible-' + id);
+  const btn = document.getElementById('expand-btn-' + id);
+  if (!col || !btn) return;
+  const isOpen = col.classList.contains('open');
+  col.classList.toggle('open');
+  col.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+  btn.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  btn.innerHTML = isOpen
+    ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Show full details`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg> Hide details`;
+}
+
+// Labour chart is now inline SVG — no JS needed
+// Footfall section removed
+
+// ── Workflow section collapse ─────────────────────────────────────────
+function toggleWf() {
+  const sec = document.getElementById('wf-sec');
+  const items = document.getElementById('wf-items');
+  const isCollapsed = sec.classList.contains('collapsed');
+  sec.classList.toggle('collapsed');
+  items.classList.toggle('collapsed');
+  sec.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+}
+
+// ── Prev/next navigation ─────────────────────────────────────────────
+function navTo(currentId, direction) {
+  const next = currentId + direction;
+  if (next < 1 || next > 6) return;
+  select(next);
+}
+
+// ── Urgency border classes ────────────────────────────────────────────
+function applyUrgencyClasses() {
+  document.querySelectorAll('.pli[data-urgency]').forEach(el => {
+    const u = el.getAttribute('data-urgency');
+    if (u === 'now')   el.classList.add('urgent-now');
+    if (u === 'today') el.classList.add('urgent-today');
+    if (u === 'wf')    el.classList.add('urgent-wf');
+  });
+}
+
+// ── All-done screen ───────────────────────────────────────────────────
+function showAllDoneScreen() {
+  const el = document.getElementById('detail-inner');
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  el.innerHTML = `
+    <div class="all-done-screen" role="main" aria-live="polite">
+      <div class="all-done-ring">
+        <div class="all-done-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#002747" stroke-width="2.5" stroke-linecap="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="all-done-heading">Great shift, NE</div>
+        <div class="all-done-sub">All 6 actions for today have been resolved. Downtown Restaurant is operating smoothly.</div>
+      </div>
+      <div class="all-done-stats" aria-label="Shift summary">
+        <div class="all-done-stat">
+          <span class="all-done-stat-num">6</span>
+          <span class="all-done-stat-lbl">Completed</span>
+        </div>
+        <div class="all-done-stat">
+          <span class="all-done-stat-num">0</span>
+          <span class="all-done-stat-lbl">Outstanding</span>
+        </div>
+      </div>
+      <div class="all-done-time" aria-label="Completed at ${time}">All done by ${time}</div>
+    </div>`;
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+select(1);
+applyUrgencyClasses();
+</script>
+</body>
+</html>

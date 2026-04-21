@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Inventory - Content</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0C4A7D;
+            --primary-dark: #002747;
+            --secondary-color: #00B69F;
+            --accent-color: #6fb4e3;
+            --bg-color: #F5F5F5;
+            --card-bg: #ffffff;
+            --text-primary: #002747;
+            --text-secondary: #64748b;
+            --border-color: #CFD1D1;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(12, 74, 125, 0.3);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .slide-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .slide-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .slide-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .slide-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 24px 0 12px 0;
+        }
+
+        .slide-section h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin: 20px 0 8px 0;
+        }
+
+        .slide-section p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .slide-section ul {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .slide-section li {
+            padding-left: 32px;
+            margin-bottom: 12px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .slide-section li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .comparison-box {
+            background: linear-gradient(135deg, rgba(12, 74, 125, 0.05), rgba(0, 182, 159, 0.05));
+            padding: 24px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .comparison-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .comparison-box .stat {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+        }
+
+        .comparison-box .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .timeline {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .timeline-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-top: 8px;
+        }
+
+        .timeline-content h5 {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(12, 74, 125, 0.08), rgba(0, 182, 159, 0.08));
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-card h5 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(0, 182, 159, 0.1), rgba(111, 180, 227, 0.1));
+            border-left: 4px solid var(--secondary-color);
+            padding: 24px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .highlight-box p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .impact-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(12, 74, 125, 0.05), rgba(0, 182, 159, 0.05));
+            border-radius: 10px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .slide-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+            margin: 40px 0;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .cta-section h2 {
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        footer {
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 80px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+
+            .slide-section {
+                padding: 24px;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+            }
+
+            .impact-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="Inventory Roadmap.html" class="back-button">← Back to Inventory</a>
+
+    <header>
+        <h1>Predictive Inventory</h1>
+        <p>Customer Advisory Board Presentation</p>
+    </header>
+
+    <div class="container">
+
+        <!-- SLIDE 1 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 1</span>
+            <h2>Predictive Inventory</h2>
+            <h3>How AI-Directed Counting Works</h3>
+            <p>A walkthrough of the product, the workflow, and where we need your input.</p>
+            <p style="color: var(--secondary-color); font-weight: 600; margin-top: 24px;">Fourth iQ</p>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 2 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 2</span>
+            <h2>What We Are Here to Discuss</h2>
+
+            <h3>The Problem</h3>
+            <p>Why inventory counting works the way it does today, and where the effort goes to waste.</p>
+
+            <h3>How Predictive Inventory Works</h3>
+            <p>The end-to-end workflow from AI recommendation through counting to results management.</p>
+
+            <h3>Controls You Have</h3>
+            <p>How you configure the system to match your operation and your risk tolerance.</p>
+
+            <h3>The Impact</h3>
+            <p>What changes for your teams, your stock accuracy, and your financial visibility.</p>
+
+            <h3>Your Feedback</h3>
+            <p>Where we need your perspective to shape the product for real operations.</p>
+
+            <div class="highlight-box">
+                <p><strong>This is a working session.</strong> We want your honest reaction, not polite agreement.</p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 3 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 3</span>
+            <h2>The Problem with Inventory Counting Today</h2>
+            <p>Most hospitality businesses count inventory the same way they always have. The process is familiar, but the cost of that familiarity is hidden.</p>
+
+            <h3>Effort Without Direction</h3>
+            <p>Your teams count every line on a fixed schedule. A stable, low-value ambient item gets the same count frequency as a high-risk, high-value chilled protein. The result is that <strong>40%+ of counting effort is spent on items with little or no likelihood of variance.</strong> That is labour redirected from service, prep, and customer-facing tasks.</p>
+
+            <h3>Variance Found Too Late</h3>
+            <p>Without prioritisation, the items most likely to have stock discrepancies are not counted any sooner than items that rarely move. By the time variance is found, it has already affected availability (customers see gaps on shelves), waste (stock has expired or been over-ordered), or your financial position (period-end adjustments come as surprises).</p>
+
+            <h3>No Way to Adapt</h3>
+            <p>Every site, every category, every item follows the same counting pattern. Managers cannot easily say 'count chilled more often' or 'skip low-value ambient this week' without changing the entire process. There is no mechanism to target effort based on what the business actually needs right now.</p>
+
+            <h3>No Learning, No Improvement</h3>
+            <p>The results of one counting cycle do not inform the next. If an item had zero variance five cycles in a row, it still gets counted on the same schedule. If another item has had variance every single cycle, it gets no extra attention. The process does not learn, so it never gets more efficient.</p>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 4 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 4</span>
+            <h2>How This Compounds</h2>
+            <p>These are not separate problems. They feed into each other.</p>
+
+            <div class="timeline">
+                <div class="timeline-step">
+                    <div class="timeline-number">1</div>
+                    <div class="timeline-content">
+                        <h5>Untargeted Counting</h5>
+                        <p>Operators count everything equally</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">2</div>
+                    <div class="timeline-content">
+                        <h5>Effort Wasted</h5>
+                        <p>Hours spent on items that rarely have variance</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">3</div>
+                    <div class="timeline-content">
+                        <h5>Variance Missed</h5>
+                        <p>High-risk items are not caught any sooner</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">4</div>
+                    <div class="timeline-content">
+                        <h5>Damage Done</h5>
+                        <p>Availability gaps, waste, financial surprises</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">5</div>
+                    <div class="timeline-content">
+                        <h5>No Feedback</h5>
+                        <p>Next cycle repeats the same pattern</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>What This Costs You</h3>
+            <div class="impact-metrics">
+                <div class="metric">
+                    <div class="metric-value">40%+</div>
+                    <div class="metric-label">of counting hours adding no value</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">£000s</div>
+                    <div class="metric-label">in variance going undetected weekly</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">Hours</div>
+                    <div class="metric-label">of operator time that could go to service</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">Zero</div>
+                    <div class="metric-label">feedback improving the next cycle</div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>Does this match your experience? Where do you feel the pain most?</strong></p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 5 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 5</span>
+            <h2>What Changes</h2>
+            <p>A Tuesday morning at one of your sites. Same team, same stock, different approach.</p>
+
+            <div class="comparison-row">
+                <div class="comparison-box">
+                    <h4>Today</h4>
+                    <div class="stat">2.5 hours</div>
+                    <div class="stat-label">120 lines | Everything counted</div>
+
+                    <div style="margin-top: 20px;">
+                        <p><strong>7:00am</strong> - Operator opens full count sheet. 120 items across all categories. Same list as last week.</p>
+                        <p style="margin-top: 12px;"><strong>7:15am</strong> - Starts counting ambient shelves. Baked beans, pasta, rice. None of these had variance last time.</p>
+                        <p style="margin-top: 12px;"><strong>8:30am</strong> - Gets to chilled section. Finally reaches high-value proteins that had variance. Already fatigued.</p>
+                        <p style="margin-top: 12px;"><strong>9:15am</strong> - Finds discrepancy: 12 units short on chicken breast. That shortage has been there for 3 days.</p>
+                        <p style="margin-top: 12px;"><strong>9:30am</strong> - Finishes count. 2.5 hours. 40% of the time was spent on items with no issues.</p>
+                    </div>
+                </div>
+
+                <div class="comparison-box">
+                    <h4>With Predictive Inventory</h4>
+                    <div class="stat">45 mins</div>
+                    <div class="stat-label">35 lines | Only what matters</div>
+
+                    <div style="margin-top: 20px;">
+                        <p><strong>7:00am</strong> - Operator opens targeted check list. 35 items. AI flagged these overnight based on risk, value, sales velocity, and days since last count.</p>
+                        <p style="margin-top: 12px;"><strong>7:05am</strong> - Starts with chilled proteins. Chicken breast is item #1. High risk, £4.80/unit, variance predicted.</p>
+                        <p style="margin-top: 12px;"><strong>7:20am</strong> - Finds shortage immediately. 12 units short. Variance caught on day 1 instead of day 3.</p>
+                        <p style="margin-top: 12px;"><strong>7:35am</strong> - Counts remaining priority items. High-value dairy, promotional bakery. Low-risk ambient not on list.</p>
+                        <p style="margin-top: 12px;"><strong>7:45am</strong> - Done. 45 minutes. Variance found and corrected.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 6 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 6</span>
+            <h2>The Operational Workflow</h2>
+            <p>How a counting cycle runs from start to finish with Predictive Inventory.</p>
+
+            <div class="timeline">
+                <div class="timeline-step">
+                    <div class="timeline-number">1</div>
+                    <div class="timeline-content">
+                        <h5>Data In</h5>
+                        <p>Sales, stock, deliveries, waste, and count history feed continuously into the AI model.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">2</div>
+                    <div class="timeline-content">
+                        <h5>AI Analyses</h5>
+                        <p>The model scores every item by risk, value, rate of sale, count freshness, and variance history.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">3</div>
+                    <div class="timeline-content">
+                        <h5>Checks Pushed</h5>
+                        <p>Prioritised line checks are sent to operators in the Counting App, with reasons for each.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">4</div>
+                    <div class="timeline-content">
+                        <h5>Operator Counts</h5>
+                        <p>Teams count only flagged items. Results are captured immediately.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">5</div>
+                    <div class="timeline-content">
+                        <h5>Results + Learn</h5>
+                        <p>Variance is shown as financial exposure. Outcomes improve the next cycle.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h5 style="color: var(--primary-color); margin-bottom: 12px;">Continuous Learning Loop</h5>
+                <p>Every count result feeds back into Step 1. The model improves each cycle. Items that had no variance are deprioritised. Items with repeated issues are escalated. The system gets smarter the more your teams use it.</p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 7 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 7</span>
+            <h2>What Your Operators Experience</h2>
+            <p>The day-to-day change for the people doing the counting.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>1. Open the Counting App</h5>
+                    <p>Instead of a full inventory list, they see a short, prioritised set of items to count. Typically 30-50 items rather than 100+.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>2. See Why Each Item Is Flagged</h5>
+                    <p>Every item shows a reason: 'High risk, value £4.80, last counted 6 days ago' or 'On promotion, variance likely.' They understand the logic.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>3. Count and Record</h5>
+                    <p>Standard counting workflow. No change to the physical process. The difference is what they are counting and why.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>4. Results Are Immediate</h5>
+                    <p>Variance appears instantly in Fourth iQ as financial exposure. Managers see what was found and what it means.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>The physical counting process does not change. What changes is what gets counted and why.</strong></p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 8 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 8</span>
+            <h2>What Managers See in Fourth iQ</h2>
+            <p>A single console designed for area and regional managers, with three views.</p>
+
+            <h3>Results</h3>
+            <p>What was recommended, what was counted, what happened. Every item is expandable. Click to see why it was flagged, the variance calculation (theoretical stock vs actual count vs financial exposure), and for uncounted items, an AI estimate of likely variance with a confidence score. Filter by status: all recommended, counted, not counted, or variance found.</p>
+
+            <h3>Controls</h3>
+            <p>Set the rules for what gets counted. Toggle categories on or off. Set minimum item value, rate of sale, and risk level thresholds per category. Set how many days between counts. Create custom override rules like 'always flag high-value chilled items' or 'skip low-ROS ambient.' A live preview shows exactly which items would be affected before you apply any change.</p>
+
+            <h3>Performance</h3>
+            <p>Is the system working? Prediction accuracy by category. Data quality health checks. Operator adoption and understanding metrics. This is how you track value and identify where to adjust.</p>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 9 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 9</span>
+            <h2>Why Every Item Shows Its Reason</h2>
+            <p>Trust is built on transparency. Here is what your teams see for every flagged item.</p>
+
+            <div class="highlight-box">
+                <h4>Example: Chicken Breast 500g</h4>
+                <p><strong>Chilled Proteins | High Risk | ROS 42/wk | £4.80</strong></p>
+                <ul style="margin-top: 12px;">
+                    <li><strong>Risk:</strong> High</li>
+                    <li><strong>Item value:</strong> £4.80</li>
+                    <li><strong>Rate of sale:</strong> 42/wk</li>
+                    <li><strong>Last counted:</strong> 6d ago</li>
+                    <li><strong>On promotion:</strong> Yes</li>
+                    <li><strong>Variance:</strong> 100 expected − 88 counted = 12 units (12%) × £4.80 = £58 exposure</li>
+                    <li><strong>Outcome:</strong> Corrected. Stock position adjusted.</li>
+                </ul>
+            </div>
+
+            <h3>Why This Matters</h3>
+            <ul>
+                <li>Operators who understand why they are counting something are more likely to do it accurately</li>
+                <li>Managers can verify the system is making sensible decisions without checking every item</li>
+                <li>When variance is shown as currency, the business impact is immediately clear</li>
+                <li>If the system flags something questionable, operators can see the reasoning and challenge it</li>
+            </ul>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 10 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 10</span>
+            <h2>You Control the Rules</h2>
+            <p>The system works to your standards, not a default. Here is what you can configure.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>Categories</h5>
+                    <p>Toggle which product categories are included in AI checks. Chilled and bakery might be active while ambient stays off.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Risk Levels</h5>
+                    <p>Choose which risk levels trigger checks per category. High only, High + Medium, or all three.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Value Threshold</h5>
+                    <p>Set a minimum item value. Below this, items are not flagged regardless of risk.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Rate of Sale</h5>
+                    <p>Set a minimum ROS. Low-selling items that rarely move can be excluded.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Count Frequency</h5>
+                    <p>Set maximum days between counts per category. Chilled might be every 3 days, frozen every 7.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Custom Overrides</h5>
+                    <p>Create named rules: 'Always flag promo items' or 'Never flag low-ROS ambient.' Overrides take precedence.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p>A live preview shows exactly which items would be affected before you apply any change. Nothing changes until you confirm.</p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 11 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 11</span>
+            <h2>Expected Impact</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h5>Counting Volume</h5>
+                    <p>30-40% fewer lines counted per period. Same or improved stock accuracy with significantly less effort.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Variance Detection</h5>
+                    <p>Proactive, not reactive. High-risk items caught before they affect availability or waste.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Operator Time</h5>
+                    <p>Significant reduction in hours spent counting. Labour redirected to service, preparation, and higher-value tasks.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Financial Visibility</h5>
+                    <p>Variance shown as £ exposure in real time. Every discrepancy has a visible business cost from the moment it is found.</p>
+                </div>
+                <div class="feature-card">
+                    <h5>Continuous Improvement</h5>
+                    <p>Each cycle is better than the last. The model learns from outcomes. Prediction quality improves automatically.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>These are targets based on our modelling.</strong> We will measure actual impact together during the pilot.</p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 12 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 12</span>
+            <h2>Where This Goes</h2>
+            <p>AI-directed counting is the starting point. The intelligence compounds.</p>
+
+            <div class="timeline">
+                <div class="timeline-step">
+                    <div class="timeline-number">Now</div>
+                    <div class="timeline-content">
+                        <h5>Smarter Counting</h5>
+                        <p>AI-prioritised line checks with results management and business logic controls in Fourth iQ.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">Next</div>
+                    <div class="timeline-content">
+                        <h5>Live Stock View</h5>
+                        <p>Continuously updated inventory position for every product. Less reliance on periodic counts.</p>
+                    </div>
+                </div>
+                <div class="timeline-step">
+                    <div class="timeline-number">Future</div>
+                    <div class="timeline-content">
+                        <h5>Smarter Ordering</h5>
+                        <p>AI-recommended orders built on the live inventory position. Counting intelligence feeds ordering.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 13 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 13</span>
+            <h2>Your Input</h2>
+            <p>We built this to solve real problems. Help us make sure we got it right.</p>
+
+            <ul>
+                <li>Does the workflow match how your operations actually run?</li>
+                <li>Are the right controls available? Is anything missing?</li>
+                <li>Would your operators trust recommendations with visible reasons?</li>
+                <li>What would make you confident enough to reduce your counting volume?</li>
+                <li>Where would you start? Which categories or sites first?</li>
+                <li>What would you need to see in the first month to know it is working?</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p><strong>There are no wrong answers.</strong> The product is better when it is shaped by real operational experience.</p>
+            </div>
+        </section>
+
+        <div class="slide-divider"></div>
+
+        <!-- SLIDE 14 -->
+        <section class="slide-section">
+            <span class="slide-number">Slide 14</span>
+            <div class="cta-section">
+                <h2>Predictive Inventory</h2>
+                <h3 style="color: rgba(255, 255, 255, 0.9); font-size: 1.4rem; margin-bottom: 24px;">Count less. Find more. Trust the system.</h3>
+                <p>Thank you for your time and your input.</p>
+                <p style="color: rgba(255, 255, 255, 0.85); margin-top: 16px;">Fourth iQ</p>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Fourth Product Roadmap. Predictive Inventory Content Page.</p>
+    </footer>
+</body>
+</html>
